@@ -1,0 +1,114 @@
+{% extends './base.html' %}
+
+{% load static %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" style="margin-top:40px;margin-bottom:50px;" action="../process_file"
+  id="form_one">
+
+
+  <div class="input-group">
+    <span class="input-group-btn">
+      <span class="btn btn-default btn-file">
+        Browse… <input type="file" multiple name="imgInp" id="imgInp" accept="">
+      </span>
+    </span> <input type="text" class="form-control" readonly>
+    <input id="image-base64" type="text" name="image-base64" style="display: none;" >
+    <select class="form-select" name="file-extention" aria-label="Select desired result file extension">
+      <option value="jpeg">JPEG</option>
+      <option value="png">PNG</option>
+      <option value="jpg">JPG</option>
+    </select>
+  </div>
+</form>
+
+
+<div class="all_output" style="display: none;" id="all_output">
+  <section id="tabs" class="project-tab">
+
+    <p style="font-family: 'Peralta', cursive;font-size:24px;color:#999999"> Результати </p>
+
+    <div class="row">
+      <div class="col-md-12">
+        <nav>
+          <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
+            <a class="nav-item nav-link active" id="nav-home-tab" data-toggle="tab" href="#nav-home" role="tab"
+              aria-controls="nav-info" aria-selected="true">
+              Іформація про файл
+            </a>
+          </div>
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+          <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+            <table class="table" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Ключ</th>
+                  <th>Значення</th>
+                </tr>
+              </thead>
+              <tbody id="file_data">
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <div class="output_table" style="display: flex; flex-direction: column; align-items: center;" cellspacing="0">
+    <div style="display: flex; width: 100%; justify-content: space-between; align-items: center;"
+      class="table_container">
+      <div width="210px">
+        <div style="">
+          <label class="switch"> <input type="checkbox" id="use_zoom"> <span class="slider"></span> </label> Zoom
+        </div>
+      </div>
+
+      <div width="210px">
+        <span id='img_download' class="btn btn-default btn-file" style="background-color: #8288fc;">
+          <span >Скачати</span></span>
+      </div>
+    </div>
+
+    <div class="slider_nav__item_big">
+      <div class="image__cover">
+        <img class="full-image" id='img_upload' src="" style="text-align:start; border-radius: 10px">
+        <div class="zoom__cursor"></div>
+      </div>
+    </div>
+    <div class="containerForZoom" id="containerForZoom"></div>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="modal_dialog" >
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Формат не вірний</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <img src="{% static 'img/logo.png' %}" style="margin-right:30px"> Сервер не зміг обробити цей формат
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрити</button>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+{% endblock %}

@@ -1,0 +1,368 @@
+{% extends '../converter/base.html' %}
+
+{% load static %}
+
+
+{% block css %}
+    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+    <style>
+        .select-input .v-label--active{
+            margin-left: -12px !important;
+        }
+
+        .specific-select-input .v-label--active{
+            margin-left: -27px !important;
+        }
+        
+        .specific-select-input2 .v-label--active{
+            margin-left: -40px !important;
+        }
+
+        .specific-select-input3 .v-label--active{
+            margin-left: -27px !important;
+        }
+
+        .specific-select-input4 .v-label--active{
+            margin-left: -20px !important;
+        }
+
+        .input-input .v-label--active{
+            margin-left: -5px !important;
+        }
+
+        .col{
+            padding: 0;
+        }
+
+        .v-text-field__details.custom{
+            margin-top: -10px;
+        }
+
+        .empty.v-text-field>.v-input__control>.v-input__slot:before{
+            border: 2px solid red;
+        }
+
+        .empty .v-text-field__suffix{
+            color: red;
+        }
+
+
+    </style>
+
+{% endblock css %}
+    
+
+{% block content %}
+<div id="app" data-app>
+
+    <template>
+        <v-container>
+            <v-form
+                ref="form"
+                v-model="valid"
+                lazy-validation
+            >
+                <v-row>
+                    <v-col cols="4">
+                    <v-subheader>Наявність алергії</v-subheader>
+                    </v-col>
+                    <v-col cols="8">
+                        <v-checkbox
+                            v-model="hasAlergy"
+                        ></v-checkbox>
+                    </v-col>
+                </v-row>
+                <v-row v-show="hasAlergy">
+                    <v-col cols="4">
+                        <v-subheader>Виберіть алергію</v-subheader>
+                    </v-col>
+                    <v-col cols="8" class="select-input">
+                        <v-autocomplete
+                            :items="components"
+                            label="Алергія"
+                            :item-text="item => `${item.name}`"
+                            multiple
+                            v-model="selectedAlergies"
+                    ></v-autocomplete>
+                    </v-col>
+                </v-row>
+
+                <v-row>
+                    <v-col cols="4">
+                        <v-subheader>Виберіть вид спорту</v-subheader>
+                    </v-col>
+                    <v-col cols="8" class="specific-select-input">
+                        <v-autocomplete
+                            :items="activityValues"
+                            label="Вид спорту(необов'язково)"
+                            v-model="selectedActivityValues"
+                            multiple
+                    ></v-autocomplete>
+                    </v-col>
+                </v-row>
+
+                <v-row>
+                    <v-col cols="4">
+                        <v-subheader>Виберіть активність</v-subheader>
+                    </v-col>
+                    <v-col cols="8" class="select-input">
+                        <v-autocomplete
+                            :items="activityLevels"
+                            label="Активність"
+                            v-model="selectedActivityLevel"
+                    ></v-autocomplete>
+                    </v-col>
+                </v-row>
+
+            <v-row>
+                <v-col cols="4">
+                <v-subheader>Вага</v-subheader>
+                </v-col>
+                <v-col cols="8" class="input-input">
+                <v-text-field
+                    label="Вага"
+                    suffix="кг"
+                    hint="Введіть вагу в кілограмах"
+                    v-model="weight"
+                    @keypress="isNumber($event)"
+                    required
+                    :class="{'empty': !weight || weight.lenght == 0}"
+                >
+                </v-text-field>
+                </v-col>
+            </v-row>
+
+            <v-row>
+                <v-col cols="4">
+                <v-subheader>Зріст</v-subheader>
+                </v-col>
+                <v-col cols="8" class="input-input">
+                <v-text-field
+                    label="Зріст"
+                    suffix="см"
+                    hint="Введіть зріст в сантиметрах"
+                    v-model="heigh"
+                    @keypress="isNumber($event)"
+                    required
+                    :class="{'empty': !heigh || heigh.lenght == 0}"
+                ></v-text-field>
+                </v-col>
+            </v-row>
+
+            <v-row>
+                <v-col cols="4">
+                <v-subheader>Вік</v-subheader>
+                </v-col>
+                    <v-col cols="8" class="input-input">
+                    <v-text-field
+                        label="Вік"
+                        suffix="років"
+                        hint="Введіть кількість повних років"
+                        v-model="age"
+                        required
+                        :class="{'empty': !age || age.lenght == 0}"
+                    ></v-text-field>
+                </v-col>
+            </v-row>
+
+            <v-row>
+                <v-col cols="4">
+                    <v-subheader>Тип шкіри</v-subheader>
+                </v-col>
+                <v-col cols="8" class="specific-select-input3">
+                    <v-autocomplete
+                        :items="skinTypes"
+                        label="Тип шкіри(необов'язково)"
+                        v-model="selectedSkinType"
+                ></v-autocomplete>
+                </v-col>
+            </v-row>
+
+            <v-row>
+                <v-col cols="4">
+                    <v-subheader>Ступінь вологості шкіри</v-subheader>
+                </v-col>
+                <v-col cols="8" class="specific-select-input2">
+                    <v-autocomplete
+                        :items="skinMoistures"
+                        label="Ступінь вологості шкіри(необов'язково)"
+                        v-model="selectedSkinMoisture"
+                ></v-autocomplete>
+                </v-col>
+            </v-row>
+
+            {% comment %} <v-row>
+                <v-col cols="4">
+                <v-subheader>Ціна</v-subheader>
+                </v-col>
+                <v-col cols="8" class="specific-select-input4">
+                <v-text-field
+                    label="Ціна(необов'язково)"
+                    suffix="₴"
+                    hint="Введіть бажану вартість в гривнях"
+                    v-model="price"
+                    @keypress="isNumber($event)"
+                ></v-text-field>
+                </v-col>
+            </v-row> {% endcomment %}
+            <v-row>
+                <v-col cols="8">
+                </v-col>
+                <v-col cols="4" class="specific-select-input4">
+                    <v-btn
+                        elevation="6"
+                        :disabled="!isFormValid"
+                        @click="handleSelectMaterial()"
+                    >Submit</v-btn>
+                </v-col>
+            </v-row>
+        </v-form>
+    </v-container>
+    </template>
+</div>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.all.min.js"></script>
+<script src="https://unpkg.com/axios@1.0.0/dist/axios.min.js"></script>
+
+
+<script type="text/javascript">
+
+    const checkbox_values = {{checkbox_values|safe}};
+    const components = {{components|safe}};
+    const activity_values = {{activity_values|safe}};
+    const activity_levels = {{activity_levels|safe}};
+    const skin_types = {{skin_types|safe}};
+    const skin_moistures = {{skin_moistures|safe}};
+
+    let vm = new Vue({
+        el: '#app',
+        vuetify: new Vuetify(),
+        delimiters: ["[[", "]]"],
+        data: {
+          hello: "WORL:D",
+          checkboxValue: checkbox_values,
+          hasAlergy: false,
+          selectedAlergies: [],
+          components: components,
+          activityValues: activity_values,
+          activityLevels:activity_levels,
+          selectedActivityValues: [],
+          selectedActivityLevel: "Низька",
+          skinTypes: skin_types,
+          selectedSkinType: null,
+          skinMoistures: skin_moistures,
+          selectedSkinMoisture: null,
+          weight: null,
+          heigh: null,
+          age: null,
+          price: null,
+          valid: false
+
+        },
+        beforeMount: function() {
+        },
+        beforeUpdate: function() {
+        },
+        methods: {
+
+            handleSelectMaterial: async function(){
+                try {
+
+                    const body = {
+                        has_alergy: this.hasAlergy,
+                        alergies: this.selectedAlergies,
+                        sports: this.selectedActivityValues,
+                        activity_level: this.selectedActivityLevel,
+                        weight: this.weight,
+                        heigh: this.heigh,
+                        age: this.age,
+                        skin_type: this.selectedSkinType,
+                        skin_moisture: this.selectedSkinMoisture,
+                        //price: this.price
+                    }
+
+                    const response = await axios.post(
+                      "{% url 'select-material' %}",
+                      body,
+                      {
+                        headers: {
+                          'X-CSRFTOKEN': '{{ csrf_token }}',
+                          'Content-Type': 'application/json'
+                        }
+                      }
+                    );
+          
+                    if (response.status === 200) {
+                        alert("success")
+                    } else {
+                      const message = `Wrong response from the server. Status code: ${response.status}`;
+                      this.fireErrorPopup(message);
+                      alert();
+                    }
+                  } catch (error) {
+                    const message = `${error}`;
+                    this.fireErrorPopup(message);
+                  }
+            },
+
+            fireErrorPopup: function (message) {
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Oops...',
+                  text: message,
+                  background: "#fff",
+                })
+              },
+
+            isNumber: function(evt) {
+                evt = (evt) ? evt : window.event;
+                let charCode = (evt.which) ? evt.which : evt.keyCode;
+                if ((charCode > 31 && (charCode < 48 || charCode > 57)) && charCode !== 46) {
+                  evt.preventDefault();
+                } else {
+                    return true;
+                }
+            },
+        },
+        computed: {
+            isFormValid: function(){
+                if (!this.weight){
+                    return false;
+                }
+                if (!this.heigh){
+                    return false;
+                }
+                if (!this.age){
+                    return false;
+                }
+
+                return true;
+            }
+        },
+        mounted: function () {
+          
+        },
+  
+      });
+
+
+</script>
+    
+    
+{% endblock %}
+
+
+{% block history_link %}
+<div class="history" id="history-link">
+    <a href="{% url 'converter' %}">Перейти до конвертора</a>
+</div>
+<div class="history" id="history-link">
+    <a href="{% url 'material-selector' %}">Перейти до підбору матеріалів</a>
+</div>
+{% endblock history_link %}

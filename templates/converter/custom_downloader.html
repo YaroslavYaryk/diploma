@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    
+    
+    <script type="application/javascript">
+
+    const client_images = {{client_images|safe}}
+    console.log(client_images.length)
+    {% comment %}client_images.forEach((base64Image, index) =>{
+        setTimeout(()=>{
+            const link = document.createElement("a");
+            link.href = base64Image;
+            link.download = `downloaded_image_${index + 1}.jpg`;
+
+
+            // Append to the document and trigger the download
+            document.body.appendChild(link);
+            link.click();
+
+            // Clean up and remove the link
+            document.body.removeChild(link);
+        }, 1000)
+    }) {% endcomment %}
+
+    function downloadNext(index) {
+        if (index >= client_images.length) return; // Stop if no more files
+
+        const link = document.createElement('a');
+        link.href = client_images[index];
+        link.download = `downloaded_image_${index + 1}_${Math.random()}.jpg`; // The server sets the filename
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Wait a bit before downloading the next file
+        setTimeout(() => downloadNext(index + 1), 100);
+    }
+
+    // Start downloading the first file
+    downloadNext(0);
+
+    </script>
+</body>
+</html>

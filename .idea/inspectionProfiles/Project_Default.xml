@@ -1,0 +1,71 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="HtmlUnknownAttribute" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="7">
+            <item index="0" class="java.lang.String" itemvalue="v-show" />
+            <item index="1" class="java.lang.String" itemvalue=":style" />
+            <item index="2" class="java.lang.String" itemvalue="@click" />
+            <item index="3" class="java.lang.String" itemvalue=":class" />
+            <item index="4" class="java.lang.String" itemvalue="v-for" />
+            <item index="5" class="java.lang.String" itemvalue="map-block-popup" />
+            <item index="6" class="java.lang.String" itemvalue="assignment" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="myValues">
+        <value>
+          <list size="14">
+            <item index="0" class="java.lang.String" itemvalue="nobr" />
+            <item index="1" class="java.lang.String" itemvalue="noembed" />
+            <item index="2" class="java.lang.String" itemvalue="comment" />
+            <item index="3" class="java.lang.String" itemvalue="noscript" />
+            <item index="4" class="java.lang.String" itemvalue="embed" />
+            <item index="5" class="java.lang.String" itemvalue="script" />
+            <item index="6" class="java.lang.String" itemvalue="assignment-house-item" />
+            <item index="7" class="java.lang.String" itemvalue="assign-user" />
+            <item index="8" class="java.lang.String" itemvalue="assign-storage" />
+            <item index="9" class="java.lang.String" itemvalue="group-item" />
+            <item index="10" class="java.lang.String" itemvalue="v-list-item-title" />
+            <item index="11" class="java.lang.String" itemvalue="v-list-item" />
+            <item index="12" class="java.lang.String" itemvalue="v-list" />
+            <item index="13" class="java.lang.String" itemvalue="v-menu" />
+          </list>
+        </value>
+      </option>
+      <option name="myCustomValuesEnabled" value="true" />
+    </inspection_tool>
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="12">
+            <item index="0" class="java.lang.String" itemvalue="boto3" />
+            <item index="1" class="java.lang.String" itemvalue="gevent" />
+            <item index="2" class="java.lang.String" itemvalue="django-storages" />
+            <item index="3" class="java.lang.String" itemvalue="gunicorn" />
+            <item index="4" class="java.lang.String" itemvalue="setproctitle" />
+            <item index="5" class="java.lang.String" itemvalue="pkgutil-resolve-name" />
+            <item index="6" class="java.lang.String" itemvalue="typing-extensions" />
+            <item index="7" class="java.lang.String" itemvalue="typing_extensions" />
+            <item index="8" class="java.lang.String" itemvalue="pkgutil_resolve_name" />
+            <item index="9" class="java.lang.String" itemvalue="Pillow" />
+            <item index="10" class="java.lang.String" itemvalue="Django" />
+            <item index="11" class="java.lang.String" itemvalue="django-ckeditor" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="django.contrib.auth.models.User.*" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

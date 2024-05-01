@@ -1,0 +1,112 @@
+{% extends './base.html' %}
+
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row history-image-collection">
+        {% for image in client_images %}
+        <div class="col-md-4 mb-3">
+            <div class="card" style="position: relative;">
+                
+                {% if image.image_base64 %}
+                    <img src="{{ image.image_base64 }}" class="card-img-top" alt="Image">
+                {% else %}
+                    <img src="{{ image.image.url }}" class="card-img-top" alt="Image">
+                {% endif %}
+                    
+                <div class="card-body" style="display:flex; flex-direction: column;  align-items: center;"> 
+                    <h5 class="card-title">Image {{ image.id }}</h5>
+                    <p class="card-text">Дата створення</p>
+                    <div style="margin-top: -15px; margin-bottom: 10px;">{{ image.created_at }}</div>
+                    <div class="custom-button" onclick="getImageClassification('{{ image.image_base64 }}')">
+                        Класифікація
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    const imagesBlock = document.querySelector('.history-image-collection');
+    imagesBlock.onclick = ((event) => {
+        if (event.target.src){
+            Swal.fire({
+                imageUrl: event.target.src,
+                showConfirmButton: false
+            });
+        }
+        
+    });
+
+    function showImageClassification(imageUrl, viewOfKnee, kneeCondition, sickness, error="") {
+        if (error){
+            return error;
+        }
+
+        let tableHtml = `
+            <table style="border-collapse: collapse; width:100%">
+                <tr>
+                    <td style="border: 1px solid #121212; padding: 8px;">Вид томографії колінного суглоба</td>
+                    <td style="border: 1px solid #121212; padding: 8px;">${viewOfKnee}</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #121212; padding: 8px;">Стан коліна</td>
+                    <td style="border: 1px solid #121212; padding: 8px;">${kneeCondition}</td>
+                </tr>
+            
+        `;
+        if (sickness){
+            tableHtml += `
+                <tr>
+                    <td style="border: 1px solid #121212; padding: 8px;">Хвороба</td>
+                    <td style="border: 1px solid #121212; padding: 8px;">${sickness}</td>
+                </tr>
+            `
+        }
+
+
+        tableHtml += `</table>`;
+
+    Swal.fire({
+        imageUrl: imageUrl,
+        html: `
+            ${tableHtml}
+        `,
+        showConfirmButton: false
+    });
+}
+{% comment %} 
+    document.getElementById('history-link').style.display = 'none'; {% endcomment %}
+
+    async function getImageClassification(base64){
+        const response = await fetch("{% url 'get_image_classification' %}", {
+            method: "POST",
+            body: JSON.stringify({base64: base64})
+        });
+        const result = await response.json();
+        if (result.success){
+            showImageClassification(base64, result.image_type, result.image_classification, result.sickness);
+        }else{
+            showImageClassification(base64, result.image_type, result.image_classification, error=result.error);
+        }
+        return;
+    }
+
+</script>
+
+{% endblock %}
+
+
+{% block history_link %}
+<div class="history" id="history-link">
+    <a href="{% url 'converter' %}">Перейти до конвертора</a>
+</div>
+<div class="history" id="history-link">
+    <a href="{% url 'material-selector' %}">Перейти до підбору матеріалів</a>
+</div>
+{% endblock history_link %}
