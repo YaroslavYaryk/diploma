@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: gunicorn Diploma.wsgi:application --bind 0.0.0.0:8000
+    expose:
+    - 8000
+    volumes:
+      - static_volume:/app/static
+      - media_volume:/app/media
+
+
+  nginx:
+    build: ./nginx
+    ports:
+      - 80:80
+    volumes:
+      - static_volume:/app/static
+      - media_volume:/app/media
+    depends_on:
+      - web
+
+volumes:
+  static_volume:
+  media_volume:
