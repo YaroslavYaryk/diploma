@@ -1,14 +1,14 @@
 import json
-from pprint import pprint
 
 from django.db.models import F
-from django.shortcuts import render
 from django.http import JsonResponse
 
 from django.views.generic import (
     View,
     TemplateView
 )
+
+ADDITIONAL_WEIGHT = 5
 
 from .models import MaterialComponent, Material
 
@@ -93,7 +93,7 @@ class MaterialSelection:
                 test_materials = materials.filter(strength_durability__gte=3, wear_resistance__gte=3, corrosion_resistance__gte=4)
                 self.add_rank_to_materials(materials_storage, test_materials)
             if 'Біг або активний спорт' in sports:
-                test_materials = materials.filter(strength_durability__gte=4, wear_resistance__gte=4, elasticity_modulus__lte=4)
+                test_materials = materials.filter(strength_durability__gte=4, wear_resistance__gte=4, elasticity_modulus__gte=4)
                 self.add_rank_to_materials(materials_storage, test_materials)
             if 'Ходьба та повсякденна активність' in sports:
                 test_materials = materials.filter(strength_durability__gte=3, wear_resistance__gte=3)
@@ -102,7 +102,7 @@ class MaterialSelection:
                 test_materials = materials.filter(strength_durability__gte=5, wear_resistance__gte=4)
                 self.add_rank_to_materials(materials_storage, test_materials)
             if 'Тяжка атлетика та силові тренування' in sports:
-                test_materials = materials.filter(strength_durability__gte=5, wear_resistance__gte=5, elasticity_modulus__lte=4)
+                test_materials = materials.filter(strength_durability__gte=5, wear_resistance__gte=5, elasticity_modulus__gte=4)
                 self.add_rank_to_materials(materials_storage, test_materials)
 
 
@@ -117,13 +117,13 @@ class MaterialSelection:
             self.add_rank_to_materials(materials_storage, test_materials)
 
         if weight > 80:
-            test_materials = materials.filter(elasticity_modulus__lte=3)  
+            test_materials = materials.filter(elasticity_modulus__gte=3)  
             self.add_rank_to_materials(materials_storage, test_materials)
         if weight > 100:
-            test_materials = materials.filter(elasticity_modulus__lte=4)
+            test_materials = materials.filter(elasticity_modulus__gte=4)
             self.add_rank_to_materials(materials_storage, test_materials)
         if weight > 120:
-            test_materials = materials.filter(elasticity_modulus__lte=5)
+            test_materials = materials.filter(elasticity_modulus__gte=5)
             self.add_rank_to_materials(materials_storage, test_materials)
             
         if skin_type == 'Нормальна':
@@ -147,41 +147,337 @@ class MaterialSelection:
             self.add_rank_to_materials(materials_storage, test_materials)
 
         if height > 170:
-            test_materials = materials.filter(elasticity_modulus__lte=2)
+            test_materials = materials.filter(elasticity_modulus__gte=2)
             self.add_rank_to_materials(materials_storage, test_materials)
         if height > 180:
-            test_materials = materials.filter(elasticity_modulus__lte=3)
+            test_materials = materials.filter(elasticity_modulus__gte=3)
             self.add_rank_to_materials(materials_storage, test_materials)
         if height > 190:
-            test_materials = materials.filter(elasticity_modulus__lte=4)
+            test_materials = materials.filter(elasticity_modulus__gte=4)
             self.add_rank_to_materials(materials_storage, test_materials)
         if height > 200:
-            test_materials = materials.filter(elasticity_modulus__lte=5)
+            test_materials = materials.filter(elasticity_modulus__gte=5)
             self.add_rank_to_materials(materials_storage, test_materials)
 
         if age > 30:
-            test_materials = materials.filter(elasticity_modulus__lte=3, wear_resistance__gte=3)
+            test_materials = materials.filter(elasticity_modulus__gte=3, wear_resistance__gte=3)
             self.add_rank_to_materials(materials_storage, test_materials)
         if age > 40:
-            test_materials = materials.filter(elasticity_modulus__lte=4, wear_resistance__gte=4)
+            test_materials = materials.filter(elasticity_modulus__gte=4, wear_resistance__gte=4)
             self.add_rank_to_materials(materials_storage, test_materials)
         if age > 60:
-            test_materials = materials.filter(elasticity_modulus__lte=5, wear_resistance__gte=4)
+            test_materials = materials.filter(elasticity_modulus__gte=5, wear_resistance__gte=4)
             self.add_rank_to_materials(materials_storage, test_materials)
             
 
+
         # Вибір найкращого матеріалу з урахуванням вагомості кожного параметру
-        best_materials = materials.annotate(
+        sorted_materials = materials.annotate(
             total_weight=(
                 F('bio_compatibility') + F('strength_durability') + F('wear_resistance') +
                 F('elasticity_modulus') + F('corrosion_resistance')
             )
         ).order_by('-total_weight')
-        
-        print([(el.name, el.total_weight, el.material_type.name) for el in best_materials])
-        
 
-        return best_materials.first()
+        print([(el.name, el.total_weight) for el in sorted_materials])
+        print(materials_storage)
+
+        elem_by_materials = self.elem_by_materials_calc(sorted_materials)
+        prosthesis_by_materials = self.prosthesis_by_materials_calc(elem_by_materials)
+        prosthesis_by_materials = self.get_classified_materials(prosthesis_by_materials, age, weight, height, sports, None)
+        prosthesis_by_materials = self.get_calculated_material_combination(materials_storage, prosthesis_by_materials)
+
+        for i in prosthesis_by_materials.keys():
+            print(f"{i} :{prosthesis_by_materials.get(i)}\n")
+
+        best_materials = self.get_best_materials(prosthesis_by_materials)
+        print(best_materials, '-----------')
+
+        return sorted_materials.first()
+
+    def get_calculated_material_combination(self, materials_storage, prosthesis_by_materials):
+        
+        for combination, elements in prosthesis_by_materials.items():
+            for elem in elements:
+                material1, material2 = elem.get('name', '__').split('__')
+                material1_score = materials_storage.get(material1, 0)
+                material2_score = materials_storage.get(material2, 0)
+                elem['total_weight'] += material1_score + material2_score
+
+        return prosthesis_by_materials
+
+    @staticmethod
+    def get_bmi(weight, heigh):
+        return weight / ((heigh / 100) ** 2)
+    
+    def get_classified_materials(self, prosthesis_by_materials, age, weight, heigh, sports, price):
+
+        BMI = self.get_bmi(weight, heigh) 
+
+        # add additional weights by age
+        if age < 20:
+            elems = prosthesis_by_materials.get('Метал__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 5
+
+            elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 5
+                
+            elems = prosthesis_by_materials.get('Метал__Метал', [])
+            for el in elems:
+                el['total_weight'] += 3
+                
+            elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+            for el in elems:
+                el['total_weight'] += 1
+
+        elif age < 35:
+            elems = prosthesis_by_materials.get('Метал__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 3
+
+            elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 3
+                
+            elems = prosthesis_by_materials.get('Метал__Метал', [])
+            for el in elems:
+                el['total_weight'] += 1
+                
+            elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+            for el in elems:
+                el['total_weight'] += 5
+                
+        elif age < 60:
+            elems = prosthesis_by_materials.get('Метал__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 3
+
+            elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 3
+                
+            elems = prosthesis_by_materials.get('Метал__Метал', [])
+            for el in elems:
+                el['total_weight'] += 1
+                
+            elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+            for el in elems:
+                el['total_weight'] += 4
+                
+        else:
+            elems = prosthesis_by_materials.get('Метал__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 5
+
+            elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 5
+                
+            elems = prosthesis_by_materials.get('Метал__Метал', [])
+            for el in elems:
+                el['total_weight'] += 3
+                
+            elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+            for el in elems:
+                el['total_weight'] += 1
+
+
+        if weight >= 100:
+            elems = prosthesis_by_materials.get('Метал__Метал', [])
+            for el in elems:
+                el['total_weight'] += 5
+   
+            
+
+        if BMI > 40:
+            elems = prosthesis_by_materials.get('Метал__Пластик', [])
+            for el in elems:
+                el['total_weight'] -= 1
+
+            elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+            for el in elems:
+                el['total_weight'] -= 1
+                
+            elems = prosthesis_by_materials.get('Метал__Метал', [])
+            for el in elems:
+                el['total_weight'] += 5
+                
+            elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+            for el in elems:
+                el['total_weight'] -= 1
+
+        elif BMI > 30:
+            elems = prosthesis_by_materials.get('Метал__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 2
+
+            elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 1
+                
+            elems = prosthesis_by_materials.get('Метал__Метал', [])
+            for el in elems:
+                el['total_weight'] += 5
+                
+            elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+            for el in elems:
+                el['total_weight'] += 4
+
+        elif BMI > 25:
+            elems = prosthesis_by_materials.get('Метал__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 4
+
+            elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 2
+                
+            elems = prosthesis_by_materials.get('Метал__Метал', [])
+            for el in elems:
+                el['total_weight'] += 1
+                
+            elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+            for el in elems:
+                el['total_weight'] += 4
+        else:
+            elems = prosthesis_by_materials.get('Метал__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 2
+
+            elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+            for el in elems:
+                el['total_weight'] += 4
+                
+            elems = prosthesis_by_materials.get('Метал__Метал', [])
+            for el in elems:
+                el['total_weight'] += 1
+                
+            elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+            for el in elems:
+                el['total_weight'] += 4
+
+        if sports:
+            if 'Водні види спорту' in sports:
+                elems = prosthesis_by_materials.get('Метал__Пластик', [])
+                for el in elems:
+                    el['total_weight'] += 3
+
+                elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+                for el in elems:
+                    el['total_weight'] += 3
+
+                elems = prosthesis_by_materials.get('Метал__Метал', [])
+                for el in elems:
+                    el['total_weight'] += 1
+
+                elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+                for el in elems:
+                    el['total_weight'] += 5
+            if 'Біг або активний спорт' in sports:
+                elems = prosthesis_by_materials.get('Метал__Пластик', [])
+                for el in elems:
+                    el['total_weight'] += 3
+
+                elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+                for el in elems:
+                    el['total_weight'] += 3
+
+                elems = prosthesis_by_materials.get('Метал__Метал', [])
+                for el in elems:
+                    el['total_weight'] -= 1
+
+                elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+                for el in elems:
+                    el['total_weight'] += 5
+            if 'Ходьба та повсякденна активність' in sports:
+                elems = prosthesis_by_materials.get('Метал__Пластик', [])
+                for el in elems:
+                    el['total_weight'] += 5
+
+                elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+                for el in elems:
+                    el['total_weight'] += 5
+
+                elems = prosthesis_by_materials.get('Метал__Метал', [])
+                for el in elems:
+                    el['total_weight'] -= 1
+
+                elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+                for el in elems:
+                    el['total_weight'] += 5
+                
+            if 'Тяжка атлетика та силові тренування' in sports:
+                elems = prosthesis_by_materials.get('Метал__Пластик', [])
+                for el in elems:
+                    el['total_weight'] += 2
+
+                elems = prosthesis_by_materials.get('Кераміка__Пластик', [])
+                for el in elems:
+                    el['total_weight'] += 1
+
+                elems = prosthesis_by_materials.get('Метал__Метал', [])
+                for el in elems:
+                    el['total_weight'] += 12
+
+                elems = prosthesis_by_materials.get('Кераміка__Кераміка', [])
+                for el in elems:
+                    el['total_weight'] += 3
+
+
+        return prosthesis_by_materials
+
+    def get_best_materials(self, prosthesis_by_materials):
+
+        materials = list(prosthesis_by_materials.values())
+        materials_list = [item for sublist in materials for item in sublist]    
+
+        print(materials, '__--___---__---__--__--__--___-__--___----')
+        sorted_materials = sorted(materials_list, key=lambda x: x['total_weight'], reverse=True)
+        if len(sorted_materials) >= 4:
+            return sorted_materials[0:4]
+        return sorted_materials
+    
+    def elem_by_materials_calc(self, best_materials):
+        elem_by_materials = {
+            "Метал": [],
+            "Пластик": [],
+            "Кераміка": [],
+        }
+        for el in best_materials:
+            material_name = el.material_type.name
+            elem_by_materials.setdefault(material_name, []).append({"name": el.name, "total_weight": el.total_weight})
+        
+        return elem_by_materials
+
+    def prosthesis_by_materials_calc(self, elem_by_materials):
+        material_combinations = [('Метал', 'Метал'), ('Метал', 'Пластик'), ('Кераміка', 'Кераміка'), ('Кераміка', 'Пластик')]
+        prosthesis_by_materials = {}
+        
+        for material1, material2 in material_combinations:
+            prosthesis_name = f"{material1}__{material2}"
+            prosthesis_list = []
+
+            for elem1 in elem_by_materials[material1]:
+                for elem2 in elem_by_materials[material2]:
+                    name = f"{elem1['name']}__{elem2['name']}"
+
+
+                    if elem1['name'] == elem2['name'] and prosthesis_name in ["Метал__Метал", "Кераміка__Кераміка"]: 
+                        total_weight = elem1["total_weight"] + elem2["total_weight"]
+                        prosthesis_list.append({"name": name, "total_weight": total_weight})
+                    elif prosthesis_name in ["Метал__Пластик", "Кераміка__Пластик"]:
+                        reverse_name = f"{elem2['name']}__{elem1['name']}"
+                        if any(item['name'] == reverse_name for item in prosthesis_list):
+                            continue
+
+                        total_weight = elem1["total_weight"] + elem2["total_weight"]
+                        prosthesis_list.append({"name": name, "total_weight": total_weight})
+
+            prosthesis_by_materials[prosthesis_name] = prosthesis_list
+
+        return prosthesis_by_materials
 
 
 class SelectMaterialForCustomer(View):
