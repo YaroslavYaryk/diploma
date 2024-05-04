@@ -67,6 +67,39 @@ class MaterialSelection:
         
         return best_material
             
+    @staticmethod
+    def material_combination_info():
+        return {
+            "Метал__Метал": {
+                "Переваги": ["Чудово підходить для пацієнтів з великою вагою", "Дуже міцні, відносно інших комбінацій", "Зазвичай дешевші, ніж керамічні"],
+                "Недоліки": ["Менша біосумісність", "Сильніше зноситься, ніж його аналоги", "Більший ризик виникнення ускладнень в процесі зношення", "Зазвичай, потребують більшої кількості ревізійних операцій, за інші"]
+            },
+            "Кераміка__Кераміка": {
+                "Переваги": ["Керамічні імплантати цінуються за гладку поверхню, яка зменшує зношування навколишніх тканин і потенційно знижує ризик розхитання імплантату з часом",
+                             "Керамічні протези продемонстрували багатообіцяючі результати щодо мінімізації зносу імплантату та протилежної поверхні суглоба",
+                             "Керамічні імпланти, будучи біологічно інертними, рідше викликають алергічні реакції",
+                             "Стійкіші до зламу і зношення відносно аналогів",
+                             "Гладка поверхня керамічних протезів може сприяти кращій стабільності та зменшити ризик розхитування або поломки протезу з часом",
+                             "Потребують меншої кількості ревізійних операцій, ніж металеві"
+                            ],
+                "Недоліки": ["Можуть видавати скрип під час ходьби з часом, проте це можна виправити хірургічним втручанням",
+                             "У рідкісних випадках вони можуть розколотися під сильним тиском на частини, які необхідно видалити хірургічним шляхом",
+                             "Найдорожчі з усіх типів"]
+            },
+            "Кераміка__Пластик": {
+                "Переваги": ["Відсутність нікелю, тому може бути використаний для людей, які мають алергічну реакцію на металеві імпланти.",
+                             "Дешевший від цілковито керамічного",
+                            ],
+                "Недоліки": ["Імунна реакція через стирання пластмасових частин."]
+            },
+            "Метал__Пластик": {
+                "Переваги": ["Найбільш доступний тип імпланту, оскільки він є найдешевшим",
+                             "Має найдовший історічний досвід безпеки та тривалості експлуатації",
+                             "Використовуються метали, які мають високу стійкість до зношування"],
+                "Недоліки": ["Можливість виникнення імунної реакції через стирання часток пластику, що може призвести до руйнування кістки та відшарування імпланту",
+                             "Полімерні частки можуть також спричинити імунну реакцію"]
+            }
+        }
     
     def select_materials(self, body):
         has_allergy = body.get('has_alergy')
@@ -170,7 +203,6 @@ class MaterialSelection:
             self.add_rank_to_materials(materials_storage, test_materials)
             
 
-
         # Вибір найкращого матеріалу з урахуванням вагомості кожного параметру
         sorted_materials = materials.annotate(
             total_weight=(
@@ -191,10 +223,26 @@ class MaterialSelection:
             print(f"{i} :{prosthesis_by_materials.get(i)}\n")
 
         best_materials = self.get_best_materials(prosthesis_by_materials)
-        print(best_materials, '-----------')
+        knee_fixation = self.get_knee_fixation_type(age, weight, height, activity_level, None)
 
-        return sorted_materials.first()
+        best_knee_fixation = sorted(knee_fixation.items(), key=lambda x: x[1], reverse=True)[0]
 
+        return best_materials, best_knee_fixation
+
+    @staticmethod
+    def serialize_material(material): 
+        return {
+            'id': material.id,
+            'name': material.name
+        }
+    
+    @staticmethod
+    def serialize_manterial_and_type_connection(material__and_type_connection): 
+        return {
+            'materials': material__and_type_connection[0],
+            'connection': material__and_type_connection[1]
+        }
+    
     def get_calculated_material_combination(self, materials_storage, prosthesis_by_materials):
         
         for combination, elements in prosthesis_by_materials.items():
@@ -205,6 +253,53 @@ class MaterialSelection:
                 elem['total_weight'] += material1_score + material2_score
 
         return prosthesis_by_materials
+
+    def get_knee_fixation_type(self, age, weight, heigh, activity, ilness=None):
+        storage = {
+            'Цементований': 0,
+            'Безцементований': 0,
+            'Гібридний': 0
+        }
+
+        HYBRID = 8
+
+        BMI = self.get_bmi(weight, heigh)
+
+        # by age
+        if age < 50:
+            storage['Безцементований'] += 10
+            storage['Гібридний'] += HYBRID
+
+        elif age >= 50:
+            storage['Цементований'] += 10
+            storage['Гібридний'] += HYBRID
+
+
+        # by activity
+        if activity == "Низька":
+            storage['Цементований'] += 10
+            storage['Гібридний'] += HYBRID
+        elif activity in ("Середня", "Висока"):
+            storage['Безцементований'] += 15
+            storage['Гібридний'] += HYBRID
+
+
+        # by ilness        
+        if ilness == "oasteoartritus":
+            storage['Цементований'] += 30
+
+
+        # by mbi
+        elif BMI >= 25:
+            storage['Цементований'] += 21
+        
+        else:
+            storage['Гібридний'] += HYBRID + 2  # 10
+            storage['Безцементований'] += HYBRID + 2  # 10
+
+        return storage
+
+
 
     @staticmethod
     def get_bmi(weight, heigh):
@@ -466,14 +561,14 @@ class MaterialSelection:
 
                     if elem1['name'] == elem2['name'] and prosthesis_name in ["Метал__Метал", "Кераміка__Кераміка"]: 
                         total_weight = elem1["total_weight"] + elem2["total_weight"]
-                        prosthesis_list.append({"name": name, "total_weight": total_weight})
+                        prosthesis_list.append({"name": name, "total_weight": total_weight, "type": prosthesis_name})
                     elif prosthesis_name in ["Метал__Пластик", "Кераміка__Пластик"]:
                         reverse_name = f"{elem2['name']}__{elem1['name']}"
                         if any(item['name'] == reverse_name for item in prosthesis_list):
                             continue
 
                         total_weight = elem1["total_weight"] + elem2["total_weight"]
-                        prosthesis_list.append({"name": name, "total_weight": total_weight})
+                        prosthesis_list.append({"name": name, "total_weight": total_weight, "type": prosthesis_name})
 
             prosthesis_by_materials[prosthesis_name] = prosthesis_list
 
@@ -522,15 +617,15 @@ class SelectMaterialForCustomer(View):
         outer_part = material_selection.select_materials(body)
         
         inner_part = material_selection.select_plastic(body)
-        
-        print(outer_part, inner_part)
-        
-        # materials = self.get_filtered_materials_by_allergies(has_alergy, alergies)
-        # materials = self.get_material_based_on_sport_and_activity_level(materials, sports, activity_level)
+
+        material_combination_info = material_selection.material_combination_info()
         
         
-        
-        return JsonResponse({'date': 'OK'})
+        return JsonResponse({
+            'inner_part': json.dumps(material_selection.serialize_material(inner_part)),
+            'outer_part': json.dumps(material_selection.serialize_manterial_and_type_connection(outer_part)),
+            'material_combination_info': json.dumps(material_combination_info),
+        })
 
 
 # Create your views here.
@@ -564,3 +659,5 @@ class MaterialSelectorView(TemplateView):
         cd['skin_moistures'] = json.dumps(['Суха', 'Нормальна волога', 'Жирна'])
 
         return cd
+
+

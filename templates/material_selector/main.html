@@ -4,74 +4,66 @@
 
 
 {% block css %}
-    <link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.min.css" rel="stylesheet">
 
-    <style>
-        .select-input .v-label--active{
-            margin-left: -12px !important;
-        }
+<style>
+    .select-input .v-label--active {
+        margin-left: -12px !important;
+    }
 
-        .specific-select-input .v-label--active{
-            margin-left: -27px !important;
-        }
-        
-        .specific-select-input2 .v-label--active{
-            margin-left: -40px !important;
-        }
+    .specific-select-input .v-label--active {
+        margin-left: -27px !important;
+    }
 
-        .specific-select-input3 .v-label--active{
-            margin-left: -27px !important;
-        }
+    .specific-select-input2 .v-label--active {
+        margin-left: -40px !important;
+    }
 
-        .specific-select-input4 .v-label--active{
-            margin-left: -20px !important;
-        }
+    .specific-select-input3 .v-label--active {
+        margin-left: -27px !important;
+    }
 
-        .input-input .v-label--active{
-            margin-left: -5px !important;
-        }
+    .specific-select-input4 .v-label--active {
+        margin-left: -20px !important;
+    }
 
-        .col{
-            padding: 0;
-        }
+    .input-input .v-label--active {
+        margin-left: -5px !important;
+    }
 
-        .v-text-field__details.custom{
-            margin-top: -10px;
-        }
+    .col {
+        padding: 0;
+    }
 
-        .empty.v-text-field>.v-input__control>.v-input__slot:before{
-            border: 2px solid red;
-        }
+    .v-text-field__details.custom {
+        margin-top: -10px;
+    }
 
-        .empty .v-text-field__suffix{
-            color: red;
-        }
+    .empty.v-text-field>.v-input__control>.v-input__slot:before {
+        border: 2px solid red;
+    }
 
-
-    </style>
+    .empty .v-text-field__suffix {
+        color: red;
+    }
+</style>
 
 {% endblock css %}
-    
+
 
 {% block content %}
 <div id="app" data-app>
 
     <template>
         <v-container>
-            <v-form
-                ref="form"
-                v-model="valid"
-                lazy-validation
-            >
+            <v-form ref="form" v-model="valid" lazy-validation>
                 <v-row>
                     <v-col cols="4">
-                    <v-subheader>Наявність алергії</v-subheader>
+                        <v-subheader>Наявність алергії</v-subheader>
                     </v-col>
                     <v-col cols="8">
-                        <v-checkbox
-                            v-model="hasAlergy"
-                        ></v-checkbox>
+                        <v-checkbox v-model="hasAlergy"></v-checkbox>
                     </v-col>
                 </v-row>
                 <v-row v-show="hasAlergy">
@@ -79,13 +71,8 @@
                         <v-subheader>Виберіть алергію</v-subheader>
                     </v-col>
                     <v-col cols="8" class="select-input">
-                        <v-autocomplete
-                            :items="components"
-                            label="Алергія"
-                            :item-text="item => `${item.name}`"
-                            multiple
-                            v-model="selectedAlergies"
-                    ></v-autocomplete>
+                        <v-autocomplete :items="components" label="Алергія" :item-text="item => `${item.name}`" multiple
+                            v-model="selectedAlergies"></v-autocomplete>
                     </v-col>
                 </v-row>
 
@@ -94,12 +81,8 @@
                         <v-subheader>Виберіть вид спорту</v-subheader>
                     </v-col>
                     <v-col cols="8" class="specific-select-input">
-                        <v-autocomplete
-                            :items="activityValues"
-                            label="Вид спорту(необов'язково)"
-                            v-model="selectedActivityValues"
-                            multiple
-                    ></v-autocomplete>
+                        <v-autocomplete :items="activityValues" label="Вид спорту(необов'язково)"
+                            v-model="selectedActivityValues" multiple></v-autocomplete>
                     </v-col>
                 </v-row>
 
@@ -108,118 +91,124 @@
                         <v-subheader>Виберіть активність</v-subheader>
                     </v-col>
                     <v-col cols="8" class="select-input">
-                        <v-autocomplete
-                            :items="activityLevels"
-                            label="Активність"
-                            v-model="selectedActivityLevel"
-                    ></v-autocomplete>
+                        <v-autocomplete :items="activityLevels" label="Активність"
+                            v-model="selectedActivityLevel"></v-autocomplete>
                     </v-col>
                 </v-row>
 
-            <v-row>
-                <v-col cols="4">
-                <v-subheader>Вага</v-subheader>
-                </v-col>
-                <v-col cols="8" class="input-input">
-                <v-text-field
-                    label="Вага"
-                    suffix="кг"
-                    hint="Введіть вагу в кілограмах"
-                    v-model="weight"
-                    @keypress="isNumber($event)"
-                    required
-                    :class="{'empty': !weight || weight.lenght == 0}"
-                >
-                </v-text-field>
-                </v-col>
-            </v-row>
-
-            <v-row>
-                <v-col cols="4">
-                <v-subheader>Зріст</v-subheader>
-                </v-col>
-                <v-col cols="8" class="input-input">
-                <v-text-field
-                    label="Зріст"
-                    suffix="см"
-                    hint="Введіть зріст в сантиметрах"
-                    v-model="heigh"
-                    @keypress="isNumber($event)"
-                    required
-                    :class="{'empty': !heigh || heigh.lenght == 0}"
-                ></v-text-field>
-                </v-col>
-            </v-row>
-
-            <v-row>
-                <v-col cols="4">
-                <v-subheader>Вік</v-subheader>
-                </v-col>
+                <v-row>
+                    <v-col cols="4">
+                        <v-subheader>Вага</v-subheader>
+                    </v-col>
                     <v-col cols="8" class="input-input">
-                    <v-text-field
-                        label="Вік"
-                        suffix="років"
-                        hint="Введіть кількість повних років"
-                        v-model="age"
-                        required
-                        :class="{'empty': !age || age.lenght == 0}"
-                    ></v-text-field>
-                </v-col>
-            </v-row>
+                        <v-text-field label="Вага" suffix="кг" hint="Введіть вагу в кілограмах" v-model="weight"
+                            @keypress="isNumber($event)" required :class="{'empty': !weight || weight.lenght == 0}">
+                        </v-text-field>
+                    </v-col>
+                </v-row>
 
-            <v-row>
-                <v-col cols="4">
-                    <v-subheader>Тип шкіри</v-subheader>
-                </v-col>
-                <v-col cols="8" class="specific-select-input3">
-                    <v-autocomplete
-                        :items="skinTypes"
-                        label="Тип шкіри(необов'язково)"
-                        v-model="selectedSkinType"
-                ></v-autocomplete>
-                </v-col>
-            </v-row>
+                <v-row>
+                    <v-col cols="4">
+                        <v-subheader>Зріст</v-subheader>
+                    </v-col>
+                    <v-col cols="8" class="input-input">
+                        <v-text-field label="Зріст" suffix="см" hint="Введіть зріст в сантиметрах" v-model="heigh"
+                            @keypress="isNumber($event)" required
+                            :class="{'empty': !heigh || heigh.lenght == 0}"></v-text-field>
+                    </v-col>
+                </v-row>
 
-            <v-row>
-                <v-col cols="4">
-                    <v-subheader>Ступінь вологості шкіри</v-subheader>
-                </v-col>
-                <v-col cols="8" class="specific-select-input2">
-                    <v-autocomplete
-                        :items="skinMoistures"
-                        label="Ступінь вологості шкіри(необов'язково)"
-                        v-model="selectedSkinMoisture"
-                ></v-autocomplete>
-                </v-col>
-            </v-row>
+                <v-row>
+                    <v-col cols="4">
+                        <v-subheader>Вік</v-subheader>
+                    </v-col>
+                    <v-col cols="8" class="input-input">
+                        <v-text-field label="Вік" suffix="років" hint="Введіть кількість повних років" v-model="age"
+                            required :class="{'empty': !age || age.lenght == 0}"></v-text-field>
+                    </v-col>
+                </v-row>
 
-            {% comment %} <v-row>
-                <v-col cols="4">
-                <v-subheader>Ціна</v-subheader>
-                </v-col>
-                <v-col cols="8" class="specific-select-input4">
-                <v-text-field
-                    label="Ціна(необов'язково)"
-                    suffix="₴"
-                    hint="Введіть бажану вартість в гривнях"
-                    v-model="price"
-                    @keypress="isNumber($event)"
-                ></v-text-field>
-                </v-col>
-            </v-row> {% endcomment %}
-            <v-row>
-                <v-col cols="8">
-                </v-col>
-                <v-col cols="4" class="specific-select-input4">
-                    <v-btn
-                        elevation="6"
-                        :disabled="!isFormValid"
-                        @click="handleSelectMaterial()"
-                    >Submit</v-btn>
-                </v-col>
-            </v-row>
-        </v-form>
-    </v-container>
+                <v-row>
+                    <v-col cols="4">
+                        <v-subheader>Тип шкіри</v-subheader>
+                    </v-col>
+                    <v-col cols="8" class="specific-select-input3">
+                        <v-autocomplete :items="skinTypes" label="Тип шкіри(необов'язково)"
+                            v-model="selectedSkinType"></v-autocomplete>
+                    </v-col>
+                </v-row>
+
+                <v-row>
+                    <v-col cols="4">
+                        <v-subheader>Ступінь вологості шкіри</v-subheader>
+                    </v-col>
+                    <v-col cols="8" class="specific-select-input2">
+                        <v-autocomplete :items="skinMoistures" label="Ступінь вологості шкіри(необов'язково)"
+                            v-model="selectedSkinMoisture"></v-autocomplete>
+                    </v-col>
+                </v-row>
+
+                {% comment %} <v-row>
+                    <v-col cols="4">
+                        <v-subheader>Ціна</v-subheader>
+                    </v-col>
+                    <v-col cols="8" class="specific-select-input4">
+                        <v-text-field label="Ціна(необов'язково)" suffix="₴" hint="Введіть бажану вартість в гривнях"
+                            v-model="price" @keypress="isNumber($event)"></v-text-field>
+                    </v-col>
+                </v-row> {% endcomment %}
+                <v-row>
+                    <v-col cols="8">
+                    </v-col>
+                    <v-col cols="4" class="specific-select-input4">
+                        <v-btn elevation="6" :disabled="!isFormValid" @click="handleSelectMaterial()">Submit</v-btn>
+                    </v-col>
+                </v-row>
+            </v-form>
+
+            <div v-if="showInnerPart" style="margin-top: 6rem;">
+                <p>Тип з'єднання: [[ connection[0] ]]</p>
+                <p>Пластиковий вкладиш на великогомілковій кістці: [[ innerPartData.name ]]</p>
+
+                <p>Стегновий компонент та великогомілковий компонент: </p>
+
+                <table style="border: 1px solid #000; width: 100%;">
+                    <thead style="background-color: #E5E7EB;">
+                        <tr>
+                            <th style="padding: 8px; text-align: center; width: 20%;">Матеріали</th>
+                            <th style="padding: 8px; text-align: center; width: 20%;">Тип протезу</th>
+                            <th style="padding: 8px; text-align: center; width: 30%;">Переваги</th>
+                            <th style="padding: 8px; text-align: center; width: 30%;">Недоліки</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in materials" :key="item.id">
+                            <td style="border: 1px solid #000; padding: 8px;">[[ item['name'].split("__").join(", ") ]]
+                            </td>
+                            <td style="border: 1px solid #000; padding: 8px;">[[ item['type'].split("__")[0] + " на " +
+                                item['type'].split("__")[1][0].toLowerCase() + item['type'].split("__")[1].slice(1) ]]
+                            </td>
+                            <td style="border: 1px solid #000; padding: 8px;">
+                                <ul style="margin: 0; padding-left: 20px;">
+                                    <li v-for="item in material_combination_info[item['type'].toString()]['Переваги']"
+                                        :key="item.id">[[ item ]]</li>
+                                </ul>
+                            </td>
+                            <td style="border: 1px solid #000; padding: 8px;">
+                                <ul style="margin: 0; padding-left: 20px;">
+                                    <li v-for="item in material_combination_info[item['type'].toString()]['Недоліки']"
+                                        :key="item.id">[[ item ]]</li>
+                                </ul>
+                            </td>
+                        </tr>
+
+                    </tbody>
+                </table>
+
+
+            </div>
+
+        </v-container>
     </template>
 </div>
 
@@ -233,45 +222,52 @@
 
 <script type="text/javascript">
 
-    const checkbox_values = {{checkbox_values|safe}};
-    const components = {{components|safe}};
-    const activity_values = {{activity_values|safe}};
-    const activity_levels = {{activity_levels|safe}};
-    const skin_types = {{skin_types|safe}};
-    const skin_moistures = {{skin_moistures|safe}};
+    const checkbox_values = {{ checkbox_values| safe}};
+    const components = {{ components| safe}};
+    const activity_values = {{ activity_values| safe}};
+    const activity_levels = {{ activity_levels| safe}};
+    const skin_types = {{ skin_types| safe}};
+    const skin_moistures = {{ skin_moistures| safe}};
+
 
     let vm = new Vue({
         el: '#app',
         vuetify: new Vuetify(),
         delimiters: ["[[", "]]"],
         data: {
-          hello: "WORL:D",
-          checkboxValue: checkbox_values,
-          hasAlergy: false,
-          selectedAlergies: [],
-          components: components,
-          activityValues: activity_values,
-          activityLevels:activity_levels,
-          selectedActivityValues: [],
-          selectedActivityLevel: "Низька",
-          skinTypes: skin_types,
-          selectedSkinType: null,
-          skinMoistures: skin_moistures,
-          selectedSkinMoisture: null,
-          weight: null,
-          heigh: null,
-          age: null,
-          price: null,
-          valid: false
+            hello: "WORL:D",
+            checkboxValue: checkbox_values,
+            hasAlergy: false,
+            selectedAlergies: [],
+            components: components,
+            activityValues: activity_values,
+            activityLevels: activity_levels,
+            selectedActivityValues: [],
+            selectedActivityLevel: "Низька",
+            skinTypes: skin_types,
+            selectedSkinType: null,
+            skinMoistures: skin_moistures,
+            selectedSkinMoisture: null,
+            weight: null,
+            heigh: null,
+            age: null,
+            price: null,
+            valid: false,
+            showInnerPart: false,
+            innerPartData: null,
+            connection: null,
+            materials: null,
+            material_combination_info: null,
 
         },
-        beforeMount: function() {
+
+        beforeMount: function () {
         },
-        beforeUpdate: function() {
+        beforeUpdate: function () {
         },
         methods: {
 
-            handleSelectMaterial: async function(){
+            handleSelectMaterial: async function () {
                 try {
 
                     const body = {
@@ -288,57 +284,65 @@
                     }
 
                     const response = await axios.post(
-                      "{% url 'select-material' %}",
-                      body,
-                      {
-                        headers: {
-                          'X-CSRFTOKEN': '{{ csrf_token }}',
-                          'Content-Type': 'application/json'
+                        "{% url 'select-material' %}",
+                        body,
+                        {
+                            headers: {
+                                'X-CSRFTOKEN': '{{ csrf_token }}',
+                                'Content-Type': 'application/json'
+                            }
                         }
-                      }
                     );
-          
+
                     if (response.status === 200) {
-                        alert("success")
+                        this.showInnerPart = true;
+                        console.log(JSON.parse(response.data.inner_part))
+                        console.log(JSON.parse(response.data.outer_part))
+                        var outer_part = JSON.parse(response.data.outer_part)
+                        this.innerPartData = JSON.parse(response.data.inner_part);
+                        this.connection = outer_part["connection"]
+                        this.materials = outer_part["materials"]
+                        this.material_combination_info = JSON.parse(response.data.material_combination_info)
+
                     } else {
-                      const message = `Wrong response from the server. Status code: ${response.status}`;
-                      this.fireErrorPopup(message);
-                      alert();
+                        const message = `Wrong response from the server. Status code: ${response.status}`;
+                        this.fireErrorPopup(message);
+                        alert();
                     }
-                  } catch (error) {
+                } catch (error) {
                     const message = `${error}`;
                     this.fireErrorPopup(message);
-                  }
+                }
             },
 
             fireErrorPopup: function (message) {
                 Swal.fire({
-                  icon: 'error',
-                  title: 'Oops...',
-                  text: message,
-                  background: "#fff",
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: message,
+                    background: "#fff",
                 })
-              },
+            },
 
-            isNumber: function(evt) {
+            isNumber: function (evt) {
                 evt = (evt) ? evt : window.event;
                 let charCode = (evt.which) ? evt.which : evt.keyCode;
                 if ((charCode > 31 && (charCode < 48 || charCode > 57)) && charCode !== 46) {
-                  evt.preventDefault();
+                    evt.preventDefault();
                 } else {
                     return true;
                 }
             },
         },
         computed: {
-            isFormValid: function(){
-                if (!this.weight){
+            isFormValid: function () {
+                if (!this.weight) {
                     return false;
                 }
-                if (!this.heigh){
+                if (!this.heigh) {
                     return false;
                 }
-                if (!this.age){
+                if (!this.age) {
                     return false;
                 }
 
@@ -346,15 +350,15 @@
             }
         },
         mounted: function () {
-          
+
         },
-  
-      });
+
+    });
 
 
 </script>
-    
-    
+
+
 {% endblock %}
 
 
