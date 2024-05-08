@@ -49,19 +49,15 @@ $(document).ready(function () {
       );
     }
 
-    document.getElementById('all_output').style.display = 'none';
+    document.getElementById("all_output").style.display = "none";
 
     if (json.url != null) {
-      document.getElementById('all_output').style.display = 'block';
+      document.getElementById("all_output").style.display = "block";
 
       $("#img_upload").attr("src", json.url["base64"]);
 
-      $("#img_download").click(function () {
-        var a = document.createElement("a"); //Create <a>
-        a.href = json.url["base64"]; //Image Base64 Goes here
-        a.download = `${json.generic.name.slice(0, -4)}.${json.fileFormat}`; //File name Here
-        a.click(); //Downloaded file
-      });
+      // Attach download handler
+      attachDownloadHandler(json);
     } else {
       $("#img_upload").attr("src", "/static/img/dot.gif");
       $("#modal_dialog").modal("toggle");
@@ -76,30 +72,48 @@ $(document).ready(function () {
 
     reader.onload = function () {
       base64 = reader.result;
-      const base64Holder = document.getElementById('image-base64');
+      const base64Holder = document.getElementById("image-base64");
       base64Holder.value = base64;
     };
     reader.onerror = function (error) {
-      console.log('Error: ', error);
+      console.log("Error: ", error);
     };
 
     return base64;
- }
+  }
+
+  // Function to attach download click event handler
+  function attachDownloadHandler(data) {
+    // Unbind any previously attached click event handlers
+    $("#img_download").unbind("click");
+
+    // Attach click event handler
+    $("#img_download").click(function () {
+      var a = document.createElement("a");
+      a.href = data.url["base64"];
+      a.download = `${data.generic.name.slice(0, -4)}.${data.fileFormat}`;
+      a.click();
+    });
+  }
 
   $("#imgInp").change(function () {
+    $("#form_one").find('input:not([type="file"])').val("");
     cleantables();
 
     var formData = new FormData(document.getElementById("form_one"));
 
     var xhr = new XMLHttpRequest();
+
     xhr.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
+        var jsonData = JSON.parse(this.responseText);
         processdata(this.responseText);
+        latestImageData = jsonData; // Store latest image data
+        attachDownloadHandler(jsonData); // Attach download handler after new image is uploaded
       }
     };
-
     getBase64(this.files[0]);
-  
+
     xhr.open("POST", "process.ajax", true);
     xhr.send(formData);
   });
