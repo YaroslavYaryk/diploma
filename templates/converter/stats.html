@@ -1,0 +1,26 @@
+{% extends './base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+
+<script type="text/javascript">
+
+
+</script>
+
+{% endblock %}
+
+
+{% block history_link %}
+<div class="history" id="history-link">
+    <a href="{% url 'converter' %}">Перейти до конвертора</a>
+</div>
+<div class="history" id="history-link">
+    <a href="{% url 'material-selector' %}">Перейти до підбору матеріалів</a>
+</div>
+<div class="history" id="history-link">
+    <a href="{% url 'converter_history' %}">Перейти до історії</a>
+</div>
+{% endblock history_link %}

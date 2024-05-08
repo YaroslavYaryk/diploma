@@ -29,6 +29,7 @@ urlpatterns = [
     path('medical/process.ajax',views.ajax_server),
     path('medical/image-classification', views.get_image_classification, name="get_image_classification"),
     path('material-selector/', include('material_selector.urls')),
+    path('stats/', views.client_statistics, name="stats"),
     
     path('admin/', admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

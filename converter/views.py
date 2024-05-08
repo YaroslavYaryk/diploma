@@ -18,9 +18,11 @@ from django.shortcuts import render
 from termcolor import colored
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.db import transaction
+from django.db.models import Count
 
 from Diploma import settings
-from .models import Collection
+from .models import Collection, CollectionStats
 
 
 @csrf_exempt
@@ -103,6 +105,48 @@ def app_render(request):
 
 
 def converter_history(request):
+    
+    # with transaction.atomic():
+    #     collections = Collection.objects.all()
+    
+    #     collection_stats = []
+        
+    #     for collection in collections:
+    #         image = collection.image_base64
+            
+    #         try:
+    #             # get image type (side, top, distant_top)
+    #             first_layer_result = image_classification.get_image_type(image)
+                
+    #             # get image classification (healthy, sick) 
+    #             second_layer_result = image_classification.get_image_classification(first_layer_result, image)
+                
+    #             third_layer = None
+                
+    #             if second_layer_result == "sick":
+    #                 third_layer = image_classification.get_sickness_classification(first_layer_result, image)
+                    
+                
+    #             stats = CollectionStats(
+    #                 collection=collection,
+    #                 image_type=first_layer_result,
+    #                 health_status=second_layer_result,
+    #                 sickness=third_layer
+    #             )
+    #         except:
+    #             continue
+            
+    #         collection_stats.append(stats)
+            
+        
+    #     CollectionStats.objects.bulk_create(collection_stats)
+        
+    
+    
+    
+    # return JsonResponse({"message": "ok"})
+    
+    
     ip = get_client_ip(request)
 
     numbers_on_page = 24
@@ -124,6 +168,29 @@ def converter_history(request):
     }
 
     return render(request, "converter/converter_history.html", context)
+
+
+def client_statistics(request):
+    
+    collection_stats = CollectionStats.objects.all()
+    
+    collection_stats_type = collection_stats.values('image_type').annotate(count=Count('image_type'))
+    
+    image_types = [el for el in collection_stats_type if el['image_type'] != 'distant_top']
+    
+    collection_stats_health_status = collection_stats.values('health_status').annotate(count=Count('health_status'))
+    
+    filtered_collection_stats_sickness = [
+        el for el in collection_stats.values('sickness').annotate(count=Count('sickness')) if el['sickness']
+    ]
+    
+    context = {
+        'image_types': json.dumps(image_types),
+        'health_status': json.dumps(list(collection_stats_health_status)),
+        'sickness': json.dumps(filtered_collection_stats_sickness)
+    }
+    
+    return render(request, "converter/stats.html", context)
 
 
 def get_images_by_ids(request):
