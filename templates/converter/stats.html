@@ -2,11 +2,261 @@
 
 {% load static %}
 
-{% block content %}
+{% block css %}
 
+<link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+
+<style>
+    .title{
+        font-size: 18px;
+        margin-bottom: 30px;
+        text-align: center;
+    }
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div id="app" data-app style="padding-bottom: 10px">
+    <div style="width:1050px; height: 320px; transform: translate(150px, 0)"  >
+        <div class="title">Статистика по типу зображення</div>
+        <canvas id="typePieChart" width="250" height="110"></canvas>
+    </div>
+    <div class="line" style="height: 2px; background: #2D3142; width: 100%; margin-top: 250px;"></div>
+    <div style="width:1000px; height: 320px; margin-top: 20px;">
+        <div class="title">Статистика по стану</div>
+        <canvas id="healthPieChart" width="250" height="110"></canvas>
+    </div>
+    <div class="line" style="height: 2px; background: #2D3142; width: 100%; margin-top: 250px;"></div>
+    <div style="width:1150px; height: 320px; margin-top: 30px; margin-bottom: 210px;">
+        <div class="title">Статистика по хворобі</div>
+        <canvas id="sicknessPieChart" width="250" height="110" style="margin-bottom: 200px;"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.all.min.js"></script>
+<script src="https://unpkg.com/axios@1.0.0/dist/axios.min.js"></script>
 
 <script type="text/javascript">
 
+    const image_types = {{image_types|safe}};
+    const health_status = {{health_status|safe}};
+    const sickness = {{sickness|safe}};
+
+    const allTypeCount = image_types[0].count + image_types[1].count;
+
+    var data = {
+        labels: ["Вигляд зверху", "Вигляд збоку"],
+        datasets: [{
+          data: [
+            image_types[0].count,
+            image_types[1].count,
+          ],
+          backgroundColor: [
+            "#475387",
+            "#538747",
+          ],
+          borderWidth:0
+        }],
+          
+      };
+      
+      var pieOptions = {
+        legend: {
+          display: true,
+          position:"left",
+          align: "start",
+          labels:{
+            padding: 20,
+            boxWidth: 25,
+
+            generateLabels: (chart) =>{
+              return [
+                {
+                  text: `Вигляд зверху - ${image_types[0].count} / ${parseInt(image_types[0].count / allTypeCount * 100)}%          `,
+                  fillStyle: "#475387",
+                  strokeStyle: "#475387",
+                },
+                {
+                  text: `Вигляд збоку - ${image_types[1].count} / ${parseInt(image_types[1].count / allTypeCount * 100)}%`,
+                  fillStyle: "#538747",
+                  strokeStyle: "#538747",
+
+                },
+              ]
+            }
+          }
+        },
+          
+      };
+      
+      var pieChartCanvas = document.getElementById("typePieChart");
+      var pieChart = new Chart(pieChartCanvas, {
+        type: 'pie', // or doughnut
+        data: data,
+        options: pieOptions
+      });
+
+
+      const allHealthStatusCount = health_status[0].count + health_status[1].count; 
+
+      var data2 = {
+        labels: ["Здоровий", "Хворий"],
+        datasets: [{
+          data: [
+            health_status[0].count,
+            health_status[1].count,
+          ],
+          backgroundColor: [
+            "#874753",
+            "#B39E00",
+          ],
+          borderWidth:0
+        }],
+          
+      };
+      
+      var pieOptions2 = {
+        legend: {
+          display: true,
+          position:"right",
+          align: "start",
+          labels:{
+            padding: 20,
+            boxWidth: 25,
+
+            generateLabels: (chart) =>{
+              return [
+                {
+                  text: `Здоровий - ${health_status[0].count} / ${parseInt(health_status[0].count / allHealthStatusCount * 100)}%`,
+                  fillStyle: "#874753",
+                  strokeStyle: "#874753",
+                },
+                {
+                  text: `Хворий - ${health_status[1].count} / ${parseInt(health_status[1].count / allHealthStatusCount * 100)}%`,
+                  fillStyle: "#B39E00",
+                  strokeStyle: "#B39E00",
+
+                },
+              ]
+            }
+          }
+        },
+          
+      };
+      
+      var pieChartCanvas2 = document.getElementById("healthPieChart");
+      var pieChart2 = new Chart(pieChartCanvas2, {
+        type: 'pie', // or doughnut
+        data: data2,
+        options: pieOptions2
+      });
+
+      const sicknessCount = sickness.map(el => el.count);
+      const allSicknessCount = sicknessCount.reduce((accumulator, currentValue) => {
+        return accumulator + currentValue
+      },0);
+
+      var data3 = {
+        labels: ['Артрит', 'Бурсит', 'Некроз', 'Остеоартрит', 'Пошкодження передньої хрестоподібної зв`язки', 'Ревматоїдний артрит', 'Розриви меніску', 'Тендиніт'],
+        datasets: [{
+          data: sickness.map(el => el.count),
+          label: 'Dataset 1',
+
+          backgroundColor: [
+            "#DD93AC",
+            "#2D3142",
+            "#FFD55C",
+            "#004B3A",
+            "#796969",
+            "#F06292",
+            "#D2FF41",
+            "#FFC5A5"
+          ],
+          borderWidth:0,
+          hoverOffset: 4
+
+        }],
+
+      };
+      
+      var pieOptions3 = {
+        responsive: true,
+        legend: {
+          display: true,
+          position:"left",
+          align: "start",
+          labels:{
+            padding: 20,
+            boxWidth: 25,
+           
+            generateLabels: (chart) =>{
+              return [
+                {
+                  text: `Артрит - ${sickness[0].count} / ${parseInt(sickness[0].count / allSicknessCount * 100)}%`,
+                  fillStyle: "#DD93AC",
+                  strokeStyle: "#DD93AC",
+                },
+                {
+                  text: `Бурсит - ${sickness[1].count} / ${parseInt(sickness[1].count / allSicknessCount * 100)}%`,
+                  fillStyle: "#2D3142",
+                  strokeStyle: "#2D3142",
+                },
+                {
+                    text: `Некроз - ${sickness[2].count} / ${parseInt(sickness[2].count / allSicknessCount * 100)}%`,
+                    fillStyle: "#FFD55C",
+                    strokeStyle: "#FFD55C",
+                },
+                {
+                    text: `Остеоартрит - ${sickness[3].count} / ${parseInt(sickness[3].count / allSicknessCount * 100)}%`,
+                    fillStyle: "#004B3A",
+                    strokeStyle: "#004B3A",
+                },
+                {
+                    text: `Пошкодження передньої хрестоподібної зв'язки - ${sickness[4].count} / ${parseInt(sickness[4].count / allSicknessCount * 100)}%`,
+                    fillStyle: "#796969",
+                    strokeStyle: "#796969",
+                },
+                {
+                    text: `Ревматоїдний артрит - ${sickness[5].count} / ${parseInt(sickness[5].count / allSicknessCount * 100)}%`,
+                    fillStyle: "#F06292",
+                    strokeStyle: "#F06292",
+                },
+                {
+                    text: `Розриви меніску - ${sickness[6].count} / ${parseInt(sickness[6].count / allSicknessCount * 100)}%`,
+                    fillStyle: "#D2FF41",
+                    strokeStyle: "#D2FF41",
+                },
+                {
+                    text: `Тендиніт - ${sickness[7].count} / ${parseInt(sickness[7].count / allSicknessCount * 100)}%`,
+                    fillStyle: "#FFC5A5",
+                    strokeStyle: "#FFC5A5",
+                },
+              ]
+            }
+          }
+        },
+        tooltip: {
+            callbacks: {
+              label: function(context) {
+                console.log("SKLSKLSKSK")
+                return "KSSKSK"
+              }
+            }
+          }
+      };
+      
+      
+      var pieChartCanvas3 = document.getElementById("sicknessPieChart");
+      var pieChart3 = new Chart(pieChartCanvas3, {
+        type: 'pie', // or doughnut
+        data: data3,
+        options: pieOptions3
+      });
 
 </script>
 
@@ -14,13 +264,15 @@
 
 
 {% block history_link %}
-<div class="history" id="history-link">
-    <a href="{% url 'converter' %}">Перейти до конвертора</a>
-</div>
-<div class="history" id="history-link">
-    <a href="{% url 'material-selector' %}">Перейти до підбору матеріалів</a>
-</div>
-<div class="history" id="history-link">
-    <a href="{% url 'converter_history' %}">Перейти до історії</a>
+<div class="nav-nav">
+    <div class="history" id="history-link">
+        <a href="{% url 'converter' %}">Перейти до конвертора</a>
+    </div>
+    <div class="history" id="history-link">
+        <a href="{% url 'material-selector' %}">Перейти до підбору матеріалів</a>
+    </div>
+    <div class="history" id="history-link">
+        <a href="{% url 'converter_history' %}">Перейти до історії</a>
+    </div>
 </div>
 {% endblock history_link %}

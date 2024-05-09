@@ -2,8 +2,39 @@
 
 {% load static %}
 
+
+{% block css %}
+
+<link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+<style>
+    [v-cloak] {
+        display: none;
+    }
+
+    .classification-dialog-body{
+        background: #fff;
+        padding: 20px;
+    }
+
+    .v-tooltip__content{
+        max-width: 700px !important;
+    }
+
+    .theme--light.v-pagination .v-pagination__item--active{
+        color: #000;
+        font-weight: 600;
+    }
+
+</style>
+    
+{% endblock css %}
+    
+
+
 {% block content %}
-<div class="container">
+<div class="container" id="app" v-cloak data-app>
     <div class="row history-image-collection">
         {% for image in client_images %}
         <div class="col-md-4 mb-3">
@@ -16,10 +47,10 @@
                 {% endif %}
                     
                 <div class="card-body" style="display:flex; flex-direction: column;  align-items: center;"> 
-                    <h5 class="card-title">Image {{ image.id }}</h5>
+                    <h5 class="card-title">Пацієнт {{ image.id }}</h5>
                     <p class="card-text">Дата створення</p>
                     <div style="margin-top: -15px; margin-bottom: 10px;">{{ image.created_at }}</div>
-                    <div class="custom-button" onclick="getImageClassification('{{ image.image_base64 }}')">
+                    <div class="custom-button" @click="getImageClassification('{{ image.image_base64 }}')">
                         Класифікація
                     </div>
                 </div>
@@ -27,75 +58,158 @@
             </div>
         </div>
         {% endfor %}
+        <div class="" style="">
+            <div class="">
+                <template>
+                    <div class="text-center">
+                      <v-container>
+                            <v-container class="max-width">
+                              <v-pagination
+                                v-model="page"
+                                class="my-4"
+                                :length="maxCount"
+                                :total-visible="15"
+                              ></v-pagination>
+                            </v-container>
+                      </v-container>
+                    </div>
+                  </template>
+            </div>
+        </div>
     </div>
+
+    <v-dialog
+            v-model="showClasificationDialog"
+            width="850px"
+            style="background: #fff;"
+    >
+      <div  class="classification-dialog-body">
+        <div class="block-image">
+            <img style="width: 100%;" :src="selectedImage" alt="">
+        </div>
+        <table style="border-collapse: collapse; width:100%">
+            <tr>
+                <td style="border: 1px solid #121212; padding: 8px;">Вид томографії колінного суглоба</td>
+                <td style="border: 1px solid #121212; padding: 8px;">[[classificationObject.image_type]]</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #121212; padding: 8px;">Стан коліна</td>
+                <td style="border: 1px solid #121212; padding: 8px;">[[classificationObject.image_classification]]</td>
+            </tr>
+            <tr v-if="classificationObject.sickness && classificationObject.sickness_heal">
+                <td style="border: 1px solid #121212; padding: 8px;">Хвороба</td>
+                <td style="border: 1px solid #121212; padding: 8px;">
+                    <span>
+                        <v-tooltip top max-width=350px>
+                            <template v-slot:activator="{ on, attrs }">
+                                <div class="tooltip-btn" v-bind="attrs" v-on="on">
+                                    [[ classificationObject.sickness ]]
+                                </div>
+                            </template>
+                            <div>
+                                <div>[[sicknessHeal.termin]]</div>
+                                <br>
+                                <div style="mask-type: 10px;">[[ displayWithList(sicknessHeal.symptoms) ]]</div>
+                                <br>
+                                <div style="mask-type: 10px;">Лікування: [[ sicknessHeal.heal_method.main ]]</div>
+                            </span>
+                        </v-tooltip>
+                    </span>
+                </td>
+            </tr>
+        </table>
+      </div>
+    </v-dialog>
 </div>
 
-<script type="text/javascript">
 
-    const imagesBlock = document.querySelector('.history-image-collection');
-    imagesBlock.onclick = ((event) => {
-        if (event.target.src){
-            Swal.fire({
-                imageUrl: event.target.src,
-                showConfirmButton: false
-            });
-        }
-        
-    });
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.all.min.js"></script>
+<script src="https://unpkg.com/axios@1.0.0/dist/axios.min.js"></script>
 
-    function showImageClassification(imageUrl, viewOfKnee, kneeCondition, sickness, error="") {
-        if (error){
-            return error;
-        }
 
-        let tableHtml = `
-            <table style="border-collapse: collapse; width:100%">
-                <tr>
-                    <td style="border: 1px solid #121212; padding: 8px;">Вид томографії колінного суглоба</td>
-                    <td style="border: 1px solid #121212; padding: 8px;">${viewOfKnee}</td>
-                </tr>
-                <tr>
-                    <td style="border: 1px solid #121212; padding: 8px;">Стан коліна</td>
-                    <td style="border: 1px solid #121212; padding: 8px;">${kneeCondition}</td>
-                </tr>
+<script type="text/javascript">   
+    
+    const page = {{page}};
+    const max_count = {{max_count}};
+
+    let vm = new Vue({
+        el: '#app',
+        vuetify: new Vuetify(),
+        delimiters: ["[[", "]]"],
+        data: {
+            showClasificationDialog: false,
+            classificationObject: {},
+            selectedImage: null,
+            sicknessHeal: {},
+            page: page,
+            maxCount: max_count,
+        },
+
+        beforeMount: function () {
+        },
+        beforeUpdate: function () {
+        },
+        methods: {
+
+            getImageClassification: async function(base64){
+                const response = await fetch("{% url 'get_image_classification' %}", {
+                    method: "POST",
+                    body: JSON.stringify({base64: base64})
+                });
+                const result = await response.json();
+                if (result.success){
+                    this.classificationObject = result;
+                    this.selectedImage = base64;
+                    this.showClasificationDialog = true;
+                    this.sicknessHeal = JSON.parse(result.sickness_heal);
+                    //showImageClassification(base64, result.image_type, result.image_classification, result.sickness);
+                }else{
+                    //showImageClassification(base64, result.image_type, result.image_classification, error=result.error);
+                }
+                return;
+            },
+
+            displayWithList: function(array){
+                return `Симптоми: ${array.join('  ')}`;
+            },
+
+            handlePaginationPress: function (page) {
+                
+    
+                const url = window.location.href;
+    
+                // Get the query string.
+                const queryString = window.location.search;
+    
+                // Parse the query string into a key-value object.
+                const params = new URLSearchParams(queryString);
+    
+                // Get the value of a specific query parameter.
+                params.set('page', page);
+                window.location.href = url.split('?')[0] + '?' + params.toString()
+    
+              },
+
+
+        },
+        computed: {
             
-        `;
-        if (sickness){
-            tableHtml += `
-                <tr>
-                    <td style="border: 1px solid #121212; padding: 8px;">Хвороба</td>
-                    <td style="border: 1px solid #121212; padding: 8px;">${sickness}</td>
-                </tr>
-            `
-        }
+        },
 
+        watch: {
+            page: function(newVal){
+                this.handlePaginationPress(newVal);
+            }
+        },
 
-        tableHtml += `</table>`;
+        mounted: function () {
 
-    Swal.fire({
-        imageUrl: imageUrl,
-        html: `
-            ${tableHtml}
-        `,
-        showConfirmButton: false
+        },
+
     });
-}
-{% comment %} 
-    document.getElementById('history-link').style.display = 'none'; {% endcomment %}
 
-    async function getImageClassification(base64){
-        const response = await fetch("{% url 'get_image_classification' %}", {
-            method: "POST",
-            body: JSON.stringify({base64: base64})
-        });
-        const result = await response.json();
-        if (result.success){
-            showImageClassification(base64, result.image_type, result.image_classification, result.sickness);
-        }else{
-            showImageClassification(base64, result.image_type, result.image_classification, error=result.error);
-        }
-        return;
-    }
 
 </script>
 
@@ -103,10 +217,15 @@
 
 
 {% block history_link %}
-<div class="history" id="history-link">
-    <a href="{% url 'converter' %}">Перейти до конвертора</a>
-</div>
-<div class="history" id="history-link">
-    <a href="{% url 'material-selector' %}">Перейти до підбору матеріалів</a>
+<div class="nav-nav">
+    <div class="history" id="history-link">
+        <a href="{% url 'converter' %}">Перейти до конвертора</a>
+    </div>
+    <div class="history" id="history-link">
+        <a href="{% url 'material-selector' %}">Перейти до підбору матеріалів</a>
+    </div>
+    <div class="history" id="history-link">
+        <a href="{% url 'stats' %}">Перейти до Статистики</a>
+    </div>
 </div>
 {% endblock history_link %}

@@ -8,6 +8,8 @@
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.min.css" rel="stylesheet">
 
 <style>
+
+    
     .select-input .v-label--active {
         margin-left: -12px !important;
     }
@@ -363,10 +365,15 @@
 
 
 {% block history_link %}
-<div class="history" id="history-link">
-    <a href="{% url 'converter' %}">Перейти до конвертора</a>
-</div>
-<div class="history" id="history-link">
-    <a href="{% url 'material-selector' %}">Перейти до підбору матеріалів</a>
+<div class="nav-nav">
+    <div class="history" id="history-link">
+        <a href="{% url 'converter' %}">Перейти до конвертора</a>
+    </div>
+    <div class="history" id="history-link">
+        <a href="{% url 'material-selector' %}">Перейти до підбору матеріалів</a>
+    </div>
+    <div class="history" id="history-link">
+        <a href="{% url 'stats' %}">Перейти до Статистики</a>
+    </div>
 </div>
 {% endblock history_link %}
