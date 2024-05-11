@@ -17,9 +17,9 @@ RUN pip install -r requirements.txt
 
 RUN python3 manage.py collectstatic --noinput
 
+# install psycopg2 dependencies
 
-
-# chown all the files to the app user
+    # chown all the files to the app user
 RUN chown -R app:app /app
 
 # change to the app user

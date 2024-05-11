@@ -12,26 +12,24 @@ services:
     depends_on:
       - db
 
-  db:
-    image: postgres:15
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: diploma
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-
   nginx:
     build: ./nginx
     ports:
-      - 80:80
+      - "80:80"
     volumes:
       - static_volume:/app/static
       - media_volume:/app/media
     depends_on:
       - web
+
+  db:
+    image: postgres:15.0-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
 
 volumes:
   static_volume:
