@@ -8,39 +8,34 @@ class Collection(models.Model):
     image_base64 = models.TextField()
     image = models.ImageField(upload_to='non-converted/', null=True)
     created_at = models.DateTimeField(auto_now=True)
-    
-    
+
     def save(self, *args, **kwargs) -> None:
         
-        if not self.pk:
-            image = self.image_base64
-            
-            try:
-                # get image type (side, top, distant_top)
-                first_layer_result = image_classification.get_image_type(image)
-                
-                # get image classification (healthy, sick) 
-                second_layer_result = image_classification.get_image_classification(first_layer_result, image)
-                
-                third_layer = None
-                
-                if second_layer_result == "sick":
-                    third_layer = image_classification.get_sickness_classification(first_layer_result, image)
-                    
-                
-                CollectionStats.objects.create(
-                    collection=self,
-                    image_type=first_layer_result,
-                    health_status=second_layer_result,
-                    sickness=third_layer
-                )
-            except:
-                pass
-        
-        return super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
+
+        image = self.image_base64
+
+        # try:
+        # get image type (side, top, distant_top)
+        first_layer_result = image_classification.get_image_type(image)
+
+        # get image classification (healthy, sick)
+        second_layer_result = image_classification.get_image_classification(first_layer_result, image)
+
+        third_layer = None
+
+        if second_layer_result == "sick":
+            third_layer = image_classification.get_sickness_classification(first_layer_result, image)
+
+        a = CollectionStats.objects.create(
+            collection=self,
+            image_type=first_layer_result,
+            health_status=second_layer_result,
+            sickness=third_layer
+        )
 
     def __str__(self):
-        return f"Collection from {self.user_ip}"
+        return f"{self.id}) Collection from {self.user_ip}"
     
     
 

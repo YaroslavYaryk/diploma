@@ -63,7 +63,11 @@ def ajax_server(request):
                     if full_path_file[-3:].upper() == 'PNG':
                         dcpimg = plt.imread(full_path_file)  # Read the PNG image using matplotlib
                         medinfo = {}  # Initialize metadata dictionary for PNG images (if needed)
-                       
+
+                    if full_path_file[-4:].upper() == 'JPEG':
+                        dcpimg = plt.imread(full_path_file)  # Read the PNG image using matplotlib
+                        medinfo = {}  # Initialize metadata dictionary for PNG images (if needed)
+
                     # medinfo.update(dcpimg.meta)
                     fig = plt.gcf()
                     fig.set_size_inches(18.5, 10.5)
@@ -82,7 +86,8 @@ def ajax_server(request):
                     d['fileFormat'] = extention
                     # create image asociated with user
                     ip = get_client_ip(request)
-                    Collection.objects.create(user_ip=ip, image_base64=image_link)
+                    collection = Collection(user_ip=ip, image_base64=image_link)
+                    collection.save()
                 except Exception as e:
 
                     traceback.print_tb(e)
