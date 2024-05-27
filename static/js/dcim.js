@@ -73,11 +73,14 @@ $(document).ready(function () {
     reader.onload = function () {
       base64 = reader.result;
       const base64Holder = document.getElementById("image-base64");
+      const preferrences = document.getElementById("convertation-prefferences");
       base64Holder.value = base64;
+      preferrences.value = "HELLO WORLD"
     };
     reader.onerror = function (error) {
       console.log("Error: ", error);
     };
+
 
     return base64;
   }
@@ -97,24 +100,30 @@ $(document).ready(function () {
   }
 
   $("#imgInp").change(function () {
-    $("#form_one").find('input:not([type="file"])').val("");
-    cleantables();
 
-    var formData = new FormData(document.getElementById("form_one"));
 
-    var xhr = new XMLHttpRequest();
+    const form = document.getElementById("convertation-form");
 
-    xhr.onreadystatechange = function () {
-      if (this.readyState == 4 && this.status == 200) {
-        var jsonData = JSON.parse(this.responseText);
-        processdata(this.responseText);
-        latestImageData = jsonData; // Store latest image data
-        attachDownloadHandler(jsonData); // Attach download handler after new image is uploaded
-      }
-    };
-    getBase64(this.files[0]);
+    form.submit()
 
-    xhr.open("POST", "process.ajax", true);
-    xhr.send(formData);
+    // $("#form_one").find('input:not([type="file"])').val("");
+    // cleantables();
+
+    // var formData = new FormData(document.getElementById("form_one"));
+
+    // var xhr = new XMLHttpRequest();
+
+    // xhr.onreadystatechange = function () {
+    //   if (this.readyState == 4 && this.status == 200) {
+    //     var jsonData = JSON.parse(this.responseText);
+    //     processdata(this.responseText);
+    //     latestImageData = jsonData; // Store latest image data
+    //     attachDownloadHandler(jsonData); // Attach download handler after new image is uploaded
+    //   }
+    // };
+    // getBase64(this.files[0]);
+
+    // xhr.open("POST", "process.ajax", true);
+    // xhr.send(formData);
   });
 });

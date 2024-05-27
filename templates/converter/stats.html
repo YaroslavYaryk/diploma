@@ -82,7 +82,7 @@
                   strokeStyle: "#475387",
                 },
                 {
-                  text: `Вигляд збоку - ${image_types[1].count} / ${parseInt(image_types[1].count / allTypeCount * 100)}%`,
+                  text: `Вигляд збоку - ${image_types[1].count} / ${100 - parseInt(image_types[0].count / allTypeCount * 100)}%`,
                   fillStyle: "#538747",
                   strokeStyle: "#538747",
 
@@ -137,7 +137,7 @@
                   strokeStyle: "#874753",
                 },
                 {
-                  text: `Хворий - ${health_status[1].count} / ${parseInt(health_status[1].count / allHealthStatusCount * 100)}%`,
+                  text: `Хворий - ${health_status[1].count} / ${100 - parseInt(health_status[0].count / allHealthStatusCount * 100)}%`,
                   fillStyle: "#B39E00",
                   strokeStyle: "#B39E00",
 

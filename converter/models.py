@@ -13,26 +13,26 @@ class Collection(models.Model):
         
         super().save(*args, **kwargs)
 
-        image = self.image_base64
+        # image = self.image_base64
 
-        # try:
-        # get image type (side, top, distant_top)
-        first_layer_result = image_classification.get_image_type(image)
+        # # try:
+        # # get image type (side, top, distant_top)
+        # first_layer_result = image_classification.get_image_type(image)
 
-        # get image classification (healthy, sick)
-        second_layer_result = image_classification.get_image_classification(first_layer_result, image)
+        # # get image classification (healthy, sick)
+        # second_layer_result = image_classification.get_image_classification(first_layer_result, image)
 
-        third_layer = None
+        # third_layer = None
 
-        if second_layer_result == "sick":
-            third_layer = image_classification.get_sickness_classification(first_layer_result, image)
+        # if second_layer_result == "sick":
+        #     third_layer = image_classification.get_sickness_classification(first_layer_result, image)
 
-        a = CollectionStats.objects.create(
-            collection=self,
-            image_type=first_layer_result,
-            health_status=second_layer_result,
-            sickness=third_layer
-        )
+        # a = CollectionStats.objects.create(
+        #     collection=self,
+        #     image_type=first_layer_result,
+        #     health_status=second_layer_result,
+        #     sickness=third_layer
+        # )
 
     def __str__(self):
         return f"{self.id}) Collection from {self.user_ip}"

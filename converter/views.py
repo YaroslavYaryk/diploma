@@ -26,11 +26,25 @@ from django.core.paginator import Paginator
 from Diploma import settings
 from .models import Collection, CollectionStats
 
+total_score = {
+    'jpeg': 0,
+    'png': 0,
+    'bmp': 0,
+}
+
+def evaluate_parameters(params, total_score):
+    for param in params:
+        if param < 33:
+            total_score['jpeg'] += 1
+        elif 33 <= param <= 66:
+            total_score['png'] += 1
+        else:
+            total_score['bmp'] += 1
 
 @csrf_exempt
 def ajax_server(request):
     start = time.time()
-    d = dict()
+    d = {'url': {}}
     generic = dict()
     medinfo = dict()
     
@@ -39,11 +53,30 @@ def ajax_server(request):
             files = request.FILES.getlist('imgInp')
             
             for file in files:
+                
+                prefferences = json.loads(request.POST.get('prefferences'))
+                
+                
                 extention = request.POST.get('file-extention')
+                quality = prefferences.get('quality')
+                taken_space = prefferences.get('takenSpace')
+                saveMetadata = prefferences.get('saveMetadata')
+                systemCompability = prefferences.get('systemCompability')
+                deepGrey = prefferences.get('deepGrey')
+                convertationSpeed = prefferences.get('convertationSpeed')
+                parameters = [quality, taken_space, saveMetadata, systemCompability, deepGrey, convertationSpeed]
                 fs = FileSystemStorage()
                 filename = fs.save(file.name, file)
                 full_path_file = os.path.join(settings.MEDIA_ROOT, filename)
                 print(colored('path->', 'red'), full_path_file)
+                
+                generic['Quality'] = quality
+                generic['Taken space'] = taken_space
+                generic['Save matadata'] = saveMetadata
+                generic['System compability'] = systemCompability
+                generic['Deep Grey'] = deepGrey
+                generic['Convertation Speed'] = convertationSpeed
+
                 
                 generic['name'] = filename
                 generic['size'] = os.path.getsize(full_path_file)
@@ -74,15 +107,34 @@ def ajax_server(request):
                     plt.imshow(dcpimg, cmap='gray')
                     plt.colorbar()
                     figure = BytesIO()
+
+                    evaluate_parameters(parameters, total_score)
+                    if all(value == 0 for value in total_score.values()):
+                        extention = "png"
+                    else:
+                        extention = max(total_score, key=total_score.get)
+                        print(total_score, '++SD_SA_D)_SA()FD(ASF(ASF))')
+                        print(extention)
+                        
+                    
                     if extention == 'jpeg':
                         plt.savefig(figure, format='jpeg', dpi=300)
                     elif extention == 'png':
                         plt.savefig(figure, format='png', dpi=300)
                     else:
-                        plt.savefig(figure, format='jpg', dpi=300)
+                        plt.savefig(figure, format='png', dpi=300)
+                    
+
+                    # if extention == 'jpeg':
+                    #     plt.savefig(figure, format='jpeg', dpi=300)
+                    # elif extention == 'png':
+                    #     plt.savefig(figure, format='png', dpi=300)
+                    # else:
+                    #     plt.savefig(figure, format='jpg', dpi=300)
                     plt.close()
                     image_link = 'data:image/png;base64,' + base64.b64encode(figure.getvalue()).decode()
                     d['url'] = {'base64': image_link}
+                    
                     d['fileFormat'] = extention
                     # create image asociated with user
                     ip = get_client_ip(request)
@@ -98,16 +150,14 @@ def ajax_server(request):
 
     generic['process time'] = time.time() - start
     d['generic'] = generic
-
+    
     d['med'] = medinfo
     
-
-    return JsonResponse(d)
+    return render(request, "converter/main_template.html", d)
 
 
 def app_render(request):
-    print(settings.BASE_DIR)
-    d = {'title': 'DICOM viewer', 'info': 'DICOM SERVER SIDE RENDER'}
+    d = {'title': 'DICOM viewer', 'info': 'DICOM SERVER SIDE RENDER', 'generic': {}, 'url': {}, 'fileFormat': ''}
     return render(request, "converter/main_template.html", d)
 
 
@@ -339,8 +389,6 @@ def get_image_classification(request):
     
     if second_layer_result == "sick":
         third_layer = image_classification.get_sickness_classification(first_layer_result, base64)
-        
-    print(sickness_heal.get(third_layer))
         
     return JsonResponse(
         {

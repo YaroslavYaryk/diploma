@@ -3,27 +3,181 @@
 {% load static %}
 
 {% block content %}
-<form method="post" enctype="multipart/form-data" style="margin-top:40px;margin-bottom:50px;" action="../process_file"
-  id="form_one">
 
+<link href="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.min.css" rel="stylesheet">
+
+<style>
+  .v-dialog{
+    overflow: hidden;
+  }
+
+  .theme--light.v-slider .v-slider__thumb, .theme--light.v-slider .v-slider__track-background, .theme--light.v-slider .v-slider__track-fill{
+    background: #000;
+  }
+
+  .v-slider__thumb-label{
+    z-index: 500;
+    background: #000;
+  }
+
+  .prefferences-button{
+    padding: 10px;
+    cursor: pointer;
+    background: #fff;
+    border: 1px solid grey;
+    transform: translate(5px, -5px);
+    border-radius: 10px !important;
+  }
+
+  .prefferences-button:hover{
+    background: #7c87ff;
+  }
+
+</style>
+
+<div id="app" data-app>
+
+  <form method="post" enctype="multipart/form-data" style="margin-top:40px;margin-bottom:50px;" action="{% url 'ajax_server' %}" id="convertation-form">
 
   <div class="input-group">
-    <span class="input-group-btn">
+    <span class="input-group-btn" >
       <span class="btn btn-default btn-file">
-        Browse… <input type="file" multiple name="imgInp" id="imgInp" accept="">
+        Browse… <input type="file" id="imgInp" multiple name="imgInp"  accept="">
       </span>
     </span> <input type="text" class="form-control" readonly>
+    <div class="block prefferences-button" @click="showFormatterConfig=true"> Prefferences</div>
     <input id="image-base64" type="text" name="image-base64" style="display: none;" >
-    <select class="form-select" name="file-extention" aria-label="Select desired result file extension">
-      <option value="jpeg">JPEG</option>
-      <option value="png">PNG</option>
-      <option value="jpg">JPG</option>
-    </select>
+    <input id="convertation-prefferences" type="text" style="display: none;" name="prefferences" :value="JSON.stringify(getSelectedPrefferences())" >
   </div>
 </form>
 
+<v-dialog v-model="showFormatterConfig" max-width="960px" style="z-index: 999; overflowd: hiden;">
+  <v-card>
+    <v-card-title>
+      <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        <div>Select status</div>
+        <div style="cursor: pointer" @click="showFormatterConfig=false"><span class="mdi mdi-close"></span></div>
+      </div>
+    </v-card-title>
+    <v-divider></v-divider>
+    <v-container>
+      <v-form ref="form" >
+        <v-row >
+          <v-col cols="4">
+              <v-subheader>Якість зображення</v-subheader>
+          </v-col>
+          <v-col cols="8" style="margin-top: 10px;">
+            <v-slider 
+              v-model="quality" 
+              :max="100"
+              :min="0"
+              :step="5" 
+              thumb-label
+            >
+              <template v-slot:thumb-label="{{ modelValue }}">
+                <div style="z-index: 500;">[[ quality ]]</div>
+              </template>
+            </v-slider>
+          </v-col>
+        </v-row>
+        <v-row >
+          <v-col cols="4">
+              <v-subheader>Розмір файлу</v-subheader>
+          </v-col>
+          <v-col cols="8" style="margin-top: 10px;">
+            <v-slider 
+              v-model="takenSpace"
+              :max="100"
+              :min="0"
+              :step="5" 
+              thumb-label
+              >
+              <template v-slot:thumb-label="{{ modelValue }}">
+                <div style="z-index: 500;">[[ takenSpace ]]</div>
+              </template>
+            </v-slider>
+          </v-col>
+        </v-row>
+        <v-row >
+          <v-col cols="4">
+              <v-subheader>Збереження метаданих</v-subheader>
+          </v-col>
+          <v-col cols="8" style="margin-top: 10px;">
+            <v-slider 
+              v-model="saveMetadata"
+              :max="100"
+              :min="0"
+              :step="5" 
+              thumb-label
+            >
+            <template v-slot:thumb-label="{{ modelValue }}">
+              <div style="z-index: 500;">[[ saveMetadata ]]</div>
+            </template>
+          </v-slider>
+          </v-col>
+        </v-row>
+        <v-row >
+          <v-col cols="4">
+              <v-subheader>Cумісність з іншими системами</v-subheader>
+          </v-col>
+          <v-col cols="8" style="margin-top: 10px;">
+            <v-slider 
+              v-model="systemCompability"
+              :max="100"
+              :min="0"
+              :step="5" 
+              thumb-label
+            >
+            <template v-slot:thumb-label="{{ modelValue }}">
+              <div style="z-index: 500;">[[ systemCompability ]]</div>
+            </template>
+          </v-slider>
+          </v-col>
+        </v-row>
+        <v-row >
+          <v-col cols="4">
+              <v-subheader>Глибина градації сірого(якість)</v-subheader>
+          </v-col>
+          <v-col cols="8" style="margin-top: 10px;">
+            <v-slider 
+              v-model="deepGrey"
+              :max="100"
+              :min="0"
+              :step="5" 
+              thumb-label
+            >
+            <template v-slot:thumb-label="{{ modelValue }}">
+              <div style="z-index: 500;">[[ deepGrey ]]</div>
+            </template>
+          </v-slider>
+          </v-col>
+        </v-row>
+        <v-row >
+          <v-col cols="4">
+              <v-subheader>Цільове використання та швидкість конвертації</v-subheader>
+          </v-col>
+          <v-col cols="8" style="margin-top: 10px;">
+            <v-slider 
+              v-model="convertationSpeed"
+              :max="100"
+              :min="0"
+              :step="5" 
+              thumb-label
+            >
+            <template v-slot:thumb-label="{{ modelValue }}">
+              <div style="z-index: 500;">[[ convertationSpeed ]]</div>
+            </template>
+          </v-slider>
+          </v-col>
+        </v-row>
+      </v-form>
+    </v-container>
+  </v-card>
+</v-dialog>
 
-<div class="all_output" style="display: none;" id="all_output">
+
+<div class="all_output" v-if="url.base64"  id="all_output">
   <section id="tabs" class="project-tab">
 
     <p style="font-family: 'Peralta', cursive;font-size:24px;color:#999999"> Результати </p>
@@ -48,7 +202,13 @@
                 </tr>
               </thead>
               <tbody id="file_data">
-
+                <template v-for="(value, name, index) in generic">
+                   
+                  <tr>
+                    <th>[[name]]</th>
+                    <th>[[value]]</th>
+                  </tr>
+                </template>
               </tbody>
             </table>
           </div>
@@ -68,14 +228,13 @@
       </div>
 
       <div width="210px">
-        <span id='img_download' class="btn btn-default btn-file" style="background-color: #8288fc;">
+        <span @click="imageDownload()" class="btn btn-default btn-file" style="background-color: #8288fc;">
           <span >Скачати</span></span>
       </div>
     </div>
-
     <div class="slider_nav__item_big">
       <div class="image__cover">
-        <img class="full-image" id='img_upload' src="" style="text-align:start; border-radius: 10px">
+        <img class="full-image" id='img_upload' src="{{url.base64}}" style="text-align:start; border-radius: 10px">
         <div class="zoom__cursor"></div>
       </div>
     </div>
@@ -108,6 +267,79 @@
     </div>
   </div>
 </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.16/dist/sweetalert2.all.min.js"></script>
+<script src="https://unpkg.com/axios@1.0.0/dist/axios.min.js"></script>
+
+
+<script type="text/javascript">
+
+  const url = {{url|safe}};
+  const generic = {{generic|safe}};
+  const fileFormat = "{{fileFormat|safe}}";
+
+  let vm = new Vue({
+      el: '#app',
+      vuetify: new Vuetify(),
+      delimiters: ["[[", "]]"],
+      data: {
+          data: "HELLO",
+          showFormatterConfig: false,
+          quality: 0,
+          takenSpace: 0,
+          saveMetadata: 0,
+          systemCompability: 0,
+          deepGrey: 0,
+          convertationSpeed: 0,
+
+      },
+
+      beforeMount: function () {
+      },
+      beforeUpdate: function () {
+      },
+      methods: {
+        getSelectedPrefferences: function(){
+          return {
+            quality: this.quality,
+            takenSpace: this.takenSpace,
+            saveMetadata: this.saveMetadata,
+            systemCompability: this.systemCompability,
+            deepGrey: this.deepGrey,
+            convertationSpeed: this.convertationSpeed
+          };
+        },
+
+        imageDownload: function(){
+          var a = document.createElement("a");
+          a.href = url.base64;
+          a.download = `${generic.name.slice(0, -4)}.${fileFormat}`;
+          a.click();
+        }
+          
+      },
+      computed: {
+      },
+      mounted: function () {
+
+        const nextURL = 'http://127.0.0.1:8000';
+        const nextTitle = 'My new page title';
+        const nextState = { additionalInformation: 'Updated the URL with JS' };
+
+        // This will replace the current entry in the browser's history, without reloading
+        window.history.replaceState(nextState, nextTitle, nextURL);
+
+
+
+      },
+
+  });
+
+
+</script>
 
 
 

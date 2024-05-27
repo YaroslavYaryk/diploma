@@ -26,7 +26,7 @@ urlpatterns = [
     path('', views.app_render, name="converter"),
     path('medical/app/history',views.converter_history, name="converter_history"),
     path('medical/app/custom-downloader/',views.get_images_by_ids, name="get_images_by_ids"),
-    path('process.ajax',views.ajax_server),
+    path('process.ajax',views.ajax_server, name="ajax_server"),
     path('medical/image-classification', views.get_image_classification, name="get_image_classification"),
     path('material-selector/', include('material_selector.urls')),
     path('stats/', views.client_statistics, name="stats"),
