@@ -9,8 +9,7 @@ services:
     volumes:
       - static_volume:/app/static
       - media_volume:/app/media
-    depends_on:
-      - db
+
 
   nginx:
     build: ./nginx
@@ -22,16 +21,15 @@ services:
     depends_on:
       - web
 
-  db:
-    image: postgres:15.0-alpine
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+  # db:
+  #   image: postgres:15.0-alpine
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data/
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=postgres
 
 volumes:
   static_volume:
   media_volume:
-  postgres_data:

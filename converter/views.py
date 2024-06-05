@@ -202,7 +202,10 @@ def converter_history(request):
     # return JsonResponse({"message": "ok"})
     
     
-    ip = get_client_ip(request)
+    # ip = get_client_ip(request)
+    
+    # for developement purposes
+    ip = "127.0.0.1"
 
     numbers_on_page = 24
 

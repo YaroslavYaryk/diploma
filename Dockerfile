@@ -15,7 +15,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends netcat
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-RUN python3 manage.py collectstatic --noinput
 
 # install psycopg2 dependencies
 
